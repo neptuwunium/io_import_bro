@@ -70,7 +70,7 @@ def import_mesh(mesh, name):
 	for material_name, submesh in mesh.submeshes:
 		if material_lookup.get(material_name) is None:
 			material_lookup[material_name] = len(mesh_data.materials)
-			mesh_data.materials.append(create_material(f'{name}_{material_name}'))
+			mesh_data.materials.append(create_material(material_name))
 		material_indices.append(np.full(submesh.triangle_count, material_lookup[material_name], dtype=np.int32))
 	material_indices_cat = np.concatenate(material_indices)
 	mesh_data.polygons.foreach_set('material_index', material_indices_cat)
