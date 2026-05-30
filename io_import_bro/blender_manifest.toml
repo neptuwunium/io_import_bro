@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Neptuwunium
+#
+# SPDX-License-Identifier: EUPL-1.2
+
+schema_version = "1.0.0"
+
+id = "io_import_bro"
+version = "1.0.2"
+name = "BroEngine Mesh Import"
+tagline = "Import mesh files from Bro Engine"
+maintainer = "neptuwunium"
+type = "add-on"
+tags = ["Import-Export"]
+website = "https://github.com/neptuwunium/io_import_bro"
+
+blender_version_min = "4.5.0"
+
+license = [
+    "SPDX:EUPL-1.2",
+]
+
+[permissions]
+files = "Importing files from disk"
+
+[build]
+paths_exclude_pattern = [
+    "__pycache__",
+    "*.pyc",
+]

@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Neptuwunium
+#
+# SPDX-License-Identifier: EUPL-1.2
+
+[project]
+name = "io_import_bro"
+version = "1.0.2"
+requires-python = "==3.13.*"
+
+[dependency-groups]
+dev = [
+    "numpy>=2.4.6",
+    "bpy==5.1.2",
+    "mathutils==5.1.0",
+    "fake-bpy-module",
+]
+
+[tool.uv.sources]
+bpy = { index = "blender" }
+
+[[tool.uv.index]]
+name = "blender"
+url = "https://download.blender.org/pypi/"
