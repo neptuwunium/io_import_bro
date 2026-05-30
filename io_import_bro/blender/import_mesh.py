@@ -22,11 +22,9 @@ def import_mesh(mesh, name):
 	blend_obj = bpy.data.objects.new(name, mesh_data)
 	if mesh.skeleton:
 		(armature_obj, bones) = create_skeleton(mesh.skeleton, blend_obj)
-		armature_obj.rotation_euler = (math.pi / 2, 0, 0)
 	else:
 		armature_obj = None
 		bones = None
-		blend_obj.rotation_euler = (math.pi / 2, 0, 0)
 
 	mesh_data.from_pydata(mesh.positions, [], mesh.indices, shade_flat=False)
 	bpy.context.view_layer.active_layer_collection.collection.objects.link(blend_obj)

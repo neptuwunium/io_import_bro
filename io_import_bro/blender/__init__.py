@@ -68,8 +68,7 @@ class SKEL_Operator(_import_template):
 		with open(path, 'rb') as file:
 			name = os.path.splitext(os.path.basename(path))[0]
 			blend_obj = bpy.data.objects.new(name, None)
-			armature_obj, _ = create_skeleton(SkelFile(file), blend_obj)
-			armature_obj.rotation_euler = (math.pi / 2, 0, 0)
+			create_skeleton(SkelFile(file), blend_obj)
 
 
 def bro_menu_import(self, _: Context):

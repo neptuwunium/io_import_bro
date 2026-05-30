@@ -12,6 +12,7 @@ from .structs.skel_struct import SkelHeader
 class SkelFile:
 	header: SkelHeader
 	hierarchy: list[int]
+	children: list[list[int]]
 	matrices: list[Matrix]
 	names: list[str]
 

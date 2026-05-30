@@ -32,14 +32,16 @@ class MeshFile:
 
 		position_type = stream.read(1)[0]
 		if position_type == 0:
-			self.positions = np.frombuffer(stream.read(vertex_count * 12), dtype=np.float32).reshape((-1, 3))
+			# noinspection PyTypeChecker
+			self.positions = np.frombuffer(stream.read(vertex_count * 12), dtype=np.float32).reshape((-1, 3))[:, [0, 2, 1]]
 		elif position_type == 1:
+			# noinspection PyTypeChecker
 			self.positions = (np.delete(
 				np.frombuffer(stream.read(vertex_count * 8), dtype=np.float16).reshape((-1, 4)), 3, axis=1)
-			                  .astype(np.float32))
+			                  .astype(np.float32))[:, [0, 2, 1]]
 
-		self.tangents = MeshFile._decompress_normal(stream, vertex_count)
-		self.normals = MeshFile._decompress_normal(stream, vertex_count)
+		self.tangents = MeshFile._decompress_normal(stream, vertex_count)[:, [0, 2, 1]]
+		self.normals = MeshFile._decompress_normal(stream, vertex_count)[:, [0, 2, 1]]
 
 		uv_count = struct.unpack("<I", stream.read(4))[0]
 		assert uv_count <= 3
@@ -71,7 +73,7 @@ class MeshFile:
 			index_buffer = index_buffer[:(index_buffer_size * 4) - 2]
 
 		# noinspection PyTypeChecker
-		self.indices = np.frombuffer(index_buffer, dtype=index_dtype).astype(np.uint32).reshape((-1, 3))
+		self.indices = np.frombuffer(index_buffer, dtype=index_dtype).astype(np.uint32).reshape((-1, 3))[:, [0, 2, 1]]
 
 		skin_type = stream.read(1)[0]
 		self.blend_weights = None

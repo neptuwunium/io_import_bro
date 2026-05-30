@@ -19,6 +19,7 @@ class SkelFile:
 		assert header.version == 4
 
 		self.hierarchy = []
+		self.children = []
 		self.names = []
 		self.matrices = []
 
@@ -33,8 +34,14 @@ class SkelFile:
 
 		for index in range(0, header.bone_count):
 			stream.seek(bone_hierarchy_offset + hierarchy_offsets[index])
-			parent_id = struct.unpack("<I", stream.read(4))[0]
+			(parent_id, child_count) = struct.unpack("<II", stream.read(8))
 			self.hierarchy.append(parent_id)
+
+			bone_children = []
+			for child_index in range(0, child_count):
+				(_, child_id) = struct.unpack("<II", stream.read(8))
+				bone_children.append(child_id)
+			self.children.append(bone_children)
 
 			stream.seek(name_pos)
 			name_length = struct.unpack("<I", stream.read(4))[0]
