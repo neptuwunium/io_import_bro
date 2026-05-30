@@ -41,7 +41,7 @@ def import_mesh(mesh, name):
 		layer = mesh_data.uv_layers.new(name=f'TEXCOORD_{uv_index}')
 		layer.uv.foreach_set('vector', loop_uvs.flatten())
 
-	if mesh.colors:
+	if mesh.colors is not None:
 		layer = mesh_data.color_attributes.new('Color', 'FLOAT_COLOR', 'POINT')
 		layer.data.foreach_set('color', mesh.colors.flatten())
 

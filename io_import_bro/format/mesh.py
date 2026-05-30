@@ -60,7 +60,7 @@ class MeshFile:
 			self.colors = None
 		elif color_type == 1:
 			# noinspection PyTypeChecker
-			self.colors = np.frombuffer(stream.read(color_type * 4), dtype=np.byte).reshape((-1, 4)) / 255.0
+			self.colors = np.frombuffer(stream.read(vertex_count * 4), dtype=np.byte).reshape((-1, 4)) / 255.0
 		else:
 			assert False
 
