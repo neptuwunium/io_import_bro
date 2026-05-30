@@ -10,10 +10,10 @@ from .c3dmath import Vector3
 class SubmeshHeader(LittleEndianStructure):
 	_pack_ = 1
 	_fields_ = [
-		('unknown', c_uint),
-		('first_index', c_uint),
+		('flags', c_uint),
+		('first_triangle', c_uint),
 		('vertex_count', c_uint),
-		('face_count', c_uint),
+		('triangle_count', c_uint),
 	]
 
 
@@ -25,6 +25,6 @@ class MeshHeader(LittleEndianStructure):
 		('bbox_max', Vector3),
 		('scale', Vector3),
 		('bias', c_float),
-		('unknown', c_uint),
+		('flags', c_uint),
 		('submesh_count', c_int),
 	]

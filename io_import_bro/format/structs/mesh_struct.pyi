@@ -8,7 +8,7 @@ from .c3dmath import Vector3
 
 
 class SubmeshHeader(LittleEndianStructure):
-	unknown: int
+	flags: int
 	first_index: int
 	vertex_count: int
 	face_count: int
@@ -20,5 +20,5 @@ class MeshHeader(LittleEndianStructure):
 	bbox_max: Vector3
 	scake: Vector3
 	bias: float
-	unknown: int
+	flags: int
 	submesh_count: int
