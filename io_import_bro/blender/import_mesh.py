@@ -35,6 +35,8 @@ def import_mesh(mesh, name):
 	mesh_data.loops.foreach_get('vertex_index', loop_vert_indices)
 
 	for uv_index, uv_list in enumerate(mesh.uv_layers):
+		uv_list = uv_list.copy()
+		uv_list[:, 1] = 1.0 - uv_list[:, 1]
 		loop_uvs = uv_list[loop_vert_indices]
 		layer = mesh_data.uv_layers.new(name=f'TEXCOORD_{uv_index}')
 		layer.uv.foreach_set('vector', loop_uvs.flatten())
