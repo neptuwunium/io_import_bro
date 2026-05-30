@@ -2,12 +2,18 @@
 #
 # SPDX-License-Identifier: EUPL-1.2
 
+import math
 import os
 
 import bpy
 from bpy.props import StringProperty, CollectionProperty
 from bpy.types import Operator, Context, Property, OperatorFileListElement, TOPBAR_MT_file_import
 from bpy_extras.io_utils import ImportHelper
+
+from .import_mesh import import_mesh
+from .import_skel import create_skeleton
+from ..format.mesh import MeshFile
+from ..format.skel import SkelFile
 
 
 # noinspection PyPep8Naming
@@ -44,7 +50,10 @@ class MESH_Operator(_import_template):
 	# noinspection PyTypeHints
 	filter_glob: StringProperty(default='*.mesh', options={'HIDDEN'})
 
-	def load(self, path): pass  # todo
+	def load(self, path):
+		with open(path, 'rb') as file:
+			name = os.path.splitext(os.path.basename(path))[0]
+			import_mesh(MeshFile(file), name)
 
 
 # noinspection PyPep8Naming
@@ -55,7 +64,12 @@ class SKEL_Operator(_import_template):
 	# noinspection PyTypeHints
 	filter_glob: StringProperty(default='*.skel', options={'HIDDEN'})
 
-	def load(self, path): pass  # todo
+	def load(self, path):
+		with open(path, 'rb') as file:
+			name = os.path.splitext(os.path.basename(path))[0]
+			blend_obj = bpy.data.objects.new(name, None)
+			armature_obj, _ = create_skeleton(SkelFile(file), blend_obj)
+			armature_obj.rotation_euler = (math.pi / 2, 0, 0)
 
 
 def bro_menu_import(self, _: Context):

@@ -42,12 +42,9 @@ class SkelFile:
 			self.names.append(name)
 			name_pos = stream.tell()
 
-			bone_matrix = matrix_data[index * 16:(index + 1) * 16]
-			bone_matrix_m0 = bone_matrix[0:4]
-			bone_matrix_m1 = bone_matrix[4:8]
-			bone_matrix_m2 = bone_matrix[8:12]
-			bone_matrix_m3 = bone_matrix[12:16]
-			self.matrices.append(Matrix((bone_matrix_m0, bone_matrix_m1, bone_matrix_m2, bone_matrix_m3)))
+			matrix_index = index * 16
+			bone_matrix = matrix_data[matrix_index:matrix_index + 16]
+			self.matrices.append(Matrix([bone_matrix[i:i + 4] for i in range(0, 16, 4)]).transposed())
 
 
 if __name__ == '__main__':

@@ -5,7 +5,6 @@
 from typing import IO, Optional
 
 import numpy as np
-import numpy.typing as npt
 from numpy.typing import NDArray
 
 from .skel import SkelFile
@@ -14,11 +13,11 @@ from .structs.mesh_struct import MeshHeader, SubmeshHeader
 
 class MeshFile:
 	header: MeshHeader
-	submeshes: dict[str, SubmeshHeader]
+	submeshes: list[tuple[str, SubmeshHeader]]
 	positions: NDArray[np.float32]
 	normals: NDArray[np.float32]
 	tangents: NDArray[np.float32]
-	uvs: list[NDArray[np.float32]]
+	uv_layers: list[NDArray[np.float32]]
 	colors: Optional[NDArray[np.float32]]
 	indices: NDArray[np.uint32]
 	blend_weights: Optional[NDArray[np.void]]

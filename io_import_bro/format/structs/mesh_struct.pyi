@@ -9,9 +9,9 @@ from .c3dmath import Vector3
 
 class SubmeshHeader(LittleEndianStructure):
 	flags: int
-	first_index: int
+	first_triangle: int
 	vertex_count: int
-	face_count: int
+	triangle_count: int
 
 
 class MeshHeader(LittleEndianStructure):
