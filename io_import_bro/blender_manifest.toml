@@ -24,6 +24,9 @@ files = "Importing files from disk"
 
 [build]
 paths_exclude_pattern = [
+    ".*",
+    "Thumbs.db",
     "__pycache__",
     "*.pyc",
+    "*.pyi",
 ]
