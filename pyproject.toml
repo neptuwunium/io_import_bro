@@ -4,7 +4,7 @@
 
 [project]
 name = "io_import_bro"
-version = "1.0.2"
+version = "1.0.0"
 requires-python = "==3.13.*"
 
 [dependency-groups]
@@ -21,3 +21,6 @@ bpy = { index = "blender" }
 [[tool.uv.index]]
 name = "blender"
 url = "https://download.blender.org/pypi/"
+
+[tool.setuptools]
+packages = ["io_import_bro"]
