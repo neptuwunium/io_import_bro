@@ -1,0 +1,45 @@
+{
+	"comps": {
+		"TestComponent": {
+			"Nya": 200,
+			"Purr": 2,
+			"Meow": true
+		}
+	},
+	"children": [
+		{
+			"comps": {
+				"TestComponent": {
+					"Nya": 2
+				}
+			},
+			"children": [
+				{
+					"comps": {
+						"TestComponent": {
+							"Nya": 3
+						}
+					},
+					"name": "Nest2",
+					"uuid": "00000000-0000-0000-0000-000000000003"
+				}
+			],
+			"name": "Nest1",
+			"uuid": "00000000-0000-0000-0000-000000000002"
+		}
+	],
+	"name": "TestPrefab",
+	"uuid": "00000000-0000-0000-0000-000000000000",
+	"overrides": {
+		"00000000-0000-0000-0000-000000000002": {
+			"comps": {
+				"TestComponent/Nya": 2
+			}
+		},
+		"00000000-0000-0000-0000-000000000003": {
+			"comps": {
+				"TestComponent/Nya": 3
+			}
+		}
+	}
+}

@@ -5,7 +5,7 @@
 bl_info = {
 	'name': 'io_import_bro',
 	'author': 'neptuwunium',
-	'version': (1, 0, 0),
+	'version': (1, 0, 1),
 	'blender': (4, 5, 0),
 	'location': 'File > Import',
 	'description': 'Import BroEngine Mesh',

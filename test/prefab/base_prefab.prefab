@@ -1,0 +1,38 @@
+{
+	"__type__": "engine::io::SceneResource::RawData",
+	"entities": {
+		"children": [
+			{
+				"children": [
+					{
+						"comps": {
+							"TestComponent": {
+								"Nya": 0
+							}
+						},
+						"name": "Nest2",
+						"uuid": "00000000-0000-0000-0000-000000000003"
+					}
+				],
+				"comps": {
+					"TestComponent": {
+						"Nya": 1
+					}
+				},
+				"name": "Nest1",
+				"uuid": "00000000-0000-0000-0000-000000000002"
+			}
+		],
+		"comps": {
+			"TestComponent": {
+				"Nya": 100,
+				"Purr": 2
+			}
+		},
+		"name": "BasePrefab",
+		"uuid": "00000000-0000-0000-0000-000000000001"
+	},
+	"modules": {},
+	"singletons": {},
+	"version": 61
+}

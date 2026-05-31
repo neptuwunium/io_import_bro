@@ -5,7 +5,7 @@
 schema_version = "1.0.0"
 
 id = "io_import_bro"
-version = "1.0.0"
+version = "1.0.1"
 name = "BroEngine Mesh Import"
 tagline = "Import mesh files from Bro Engine"
 maintainer = "neptuwunium"
