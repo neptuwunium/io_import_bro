@@ -11,3 +11,6 @@ class RTTRObject(dict):
 	def __setattr__(self, key: str, value: Any | None): pass
 
 	def __delattr__(self, key: str): pass
+
+
+def load_rttr(prefab_parth: str, base_path: str): pass

@@ -3,10 +3,8 @@
 # SPDX-License-Identifier: EUPL-1.2
 
 import copy
-import json
-import os.path
 
-from .rttr import RTTRObject
+from .rttr import RTTRObject, load_rttr
 
 
 def _unflatten_dict(flat_dict, delimiter='/'):
@@ -18,7 +16,12 @@ def _unflatten_dict(flat_dict, delimiter='/'):
 			if part not in current:
 				current[part] = RTTRObject()
 			current = current[part]
-		current[parts[-1]] = _unflatten_dict(value) if isinstance(value, RTTRObject) else value
+		if isinstance(value, RTTRObject):
+			current[parts[-1]] = _unflatten_dict(value)
+		elif isinstance(value, list):
+			current[parts[-1]] = [_unflatten_dict(v) for v in value]
+		else:
+			current[parts[-1]] = value
 	return unflattened
 
 
@@ -26,32 +29,24 @@ def _deep_merge(target, source):
 	for key, value in source.items():
 		if isinstance(value, RTTRObject) and isinstance(target.get(key), RTTRObject):
 			_deep_merge(target[key], value)
+		if isinstance(value, list) and isinstance(target.get(key), list):
+			target[key] += value
 		else:
 			target[key] = copy.deepcopy(value)
 	return target
 
 
-def load_prefab(prefab_path, base_path, inherited_overrides=None, is_root=False):
+def load_prefab(prefab_path, base_path, inherited_overrides=None):
 	if not (prefab_path and prefab_path.endswith('.prefab')):
 		return RTTRObject()
 
 	if not prefab_path.endswith(".client.prefab"):
 		prefab_path = prefab_path[:-len(".prefab")] + ".client.prefab"
 
-	if prefab_path[0] == '/':
-		prefab_path = prefab_path[1:]
-
-	prefab_path = os.path.join(base_path, prefab_path)
-
-	if not os.path.exists(prefab_path):
-		return RTTRObject()
-
-	with open(prefab_path, 'r') as entity_file:
-		return resolve_prefab(json.load(entity_file, object_hook=lambda d: RTTRObject(d)).get('entities', RTTRObject()),
-		                      base_path, inherited_overrides, is_root)
+	return resolve_prefab(load_rttr(prefab_path, base_path).get('entities'), base_path, inherited_overrides)
 
 
-def resolve_prefab(entity, base_path, inherited_overrides=None, is_root=False):
+def resolve_prefab(entity, base_path, inherited_overrides=None):
 	if inherited_overrides is None:
 		inherited_overrides = RTTRObject()
 
@@ -97,9 +92,6 @@ def resolve_prefab(entity, base_path, inherited_overrides=None, is_root=False):
 
 	if resolved_children:
 		resolved_entity['children'] = resolved_children
-
-	if is_root and active_overrides:
-		resolved_entity['overrides'] = active_overrides
 
 	for key, value in entity.items():
 		if key not in ['comps', 'children', 'overrides', 'prefab']:
