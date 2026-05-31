@@ -9,7 +9,7 @@ import os.path
 from .rttr import RTTRObject
 
 
-def unflatten_dict(flat_dict, delimiter='/'):
+def _unflatten_dict(flat_dict, delimiter='/'):
 	unflattened = RTTRObject()
 	for key, value in flat_dict.items():
 		parts = key.split(delimiter)
@@ -18,14 +18,14 @@ def unflatten_dict(flat_dict, delimiter='/'):
 			if part not in current:
 				current[part] = RTTRObject()
 			current = current[part]
-		current[parts[-1]] = unflatten_dict(value) if isinstance(value, RTTRObject) else value
+		current[parts[-1]] = _unflatten_dict(value) if isinstance(value, RTTRObject) else value
 	return unflattened
 
 
-def deep_merge(target, source):
+def _deep_merge(target, source):
 	for key, value in source.items():
 		if isinstance(value, RTTRObject) and isinstance(target.get(key), RTTRObject):
-			deep_merge(target[key], value)
+			_deep_merge(target[key], value)
 		else:
 			target[key] = copy.deepcopy(value)
 	return target
@@ -68,13 +68,13 @@ def resolve_prefab(entity, base_path, inherited_overrides=None, is_root=False):
 				active_overrides[target_uuid] = copy.deepcopy(override_data)
 			else:
 				merged_override = copy.deepcopy(override_data)
-				deep_merge(merged_override, active_overrides[target_uuid])
+				_deep_merge(merged_override, active_overrides[target_uuid])
 				active_overrides[target_uuid] = merged_override
 
 	if 'comps' in entity:
-		unpacked_comps = unflatten_dict(entity['comps'])
+		unpacked_comps = _unflatten_dict(entity['comps'])
 		resolved_entity.setdefault('comps', RTTRObject())
-		deep_merge(resolved_entity['comps'], unpacked_comps)
+		_deep_merge(resolved_entity['comps'], unpacked_comps)
 
 	entity_uuid = entity.get('uuid')
 	resolved_children = []
@@ -82,9 +82,9 @@ def resolve_prefab(entity, base_path, inherited_overrides=None, is_root=False):
 	if entity_uuid and entity_uuid in active_overrides:
 		override_data = active_overrides[entity_uuid]
 		if 'comps' in override_data:
-			unpacked_overrides = unflatten_dict(override_data['comps'])
+			unpacked_overrides = _unflatten_dict(override_data['comps'])
 			resolved_entity.setdefault('comps', RTTRObject())
-			deep_merge(resolved_entity['comps'], unpacked_overrides)
+			_deep_merge(resolved_entity['comps'], unpacked_overrides)
 
 	for child in resolved_entity.get('children', []):
 		resolved_children.append(resolve_prefab(child, base_path, active_overrides))
@@ -110,3 +110,5 @@ def resolve_prefab(entity, base_path, inherited_overrides=None, is_root=False):
 			resolved_entity[key] = copy.deepcopy(value)
 
 	return resolved_entity
+
+__all__ = ['load_prefab', 'resolve_prefab']
