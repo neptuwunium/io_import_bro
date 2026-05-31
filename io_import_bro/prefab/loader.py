@@ -19,7 +19,7 @@ def _unflatten_dict(flat_dict, delimiter='/'):
 		if isinstance(value, RTTRObject):
 			current[parts[-1]] = _unflatten_dict(value)
 		elif isinstance(value, list):
-			current[parts[-1]] = [_unflatten_dict(v) for v in value]
+			current[parts[-1]] = [_unflatten_dict(v) if isinstance(value, RTTRObject) else v for v in value]
 		else:
 			current[parts[-1]] = value
 	return unflattened
@@ -37,11 +37,17 @@ def _deep_merge(target, source):
 
 
 def load_prefab(prefab_path, base_path, inherited_overrides=None):
-	if not (prefab_path and prefab_path.endswith('.prefab')):
+	if not prefab_path:
 		return RTTRObject()
 
-	if not prefab_path.endswith(".client.prefab"):
-		prefab_path = prefab_path[:-len(".prefab")] + ".client.prefab"
+	if prefab_path.endswith('.prefab'):
+		if not prefab_path.endswith(".client.prefab"):
+			prefab_path = prefab_path[:-len(".prefab")] + ".client.prefab"
+	elif prefab_path.endswith('.world'):
+		if not prefab_path.endswith(".client.world"):
+			prefab_path = prefab_path[:-len(".world")] + ".client.world"
+	else:
+		return RTTRObject()
 
 	return resolve_prefab(load_rttr(prefab_path, base_path).get('entities'), base_path, inherited_overrides)
 

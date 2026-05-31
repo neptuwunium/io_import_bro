@@ -2,39 +2,94 @@
 #
 # SPDX-License-Identifier: EUPL-1.2
 
-import math
 import os
+from typing import Self
 
 import bpy
+import bpy.utils.previews
 from bpy.props import StringProperty, CollectionProperty
-from bpy.types import Operator, Context, Property, OperatorFileListElement, TOPBAR_MT_file_import
+# noinspection PyUnresolvedReferences
+from bpy.types import Operator, Context, Property, OperatorFileListElement, ImagePreview, TOPBAR_MT_file_import
+from bpy.utils.previews import ImagePreviewCollection
 from bpy_extras.io_utils import ImportHelper
 
 from .import_mesh import import_mesh
 from .import_skel import create_skeleton
+from .. import __package__ as __base_package__
 from ..format.mesh import MeshFile
 from ..format.skel import SkelFile
+from ..prefab import rttr
+
+_bro_image_collection: ImagePreviewCollection | None = None
 
 
-# noinspection PyPep8Naming
-class _import_template(Operator, ImportHelper):
+def _load_preview_image(name: str, path: str) -> str:
+	global _bro_image_collection
+	if _bro_image_collection is None:
+		return 'MESH_DATA'
+
+	if path is None:
+		return 'MESH_DATA'
+
+	if name not in _bro_image_collection:
+		game_path = AddonPreferences.instance().game_data_path
+		assert game_path is not None
+
+		if path[0] == '/':
+			path = path[1:]
+
+		if not path.endswith('.dds'):
+			path = path + '.dds'
+
+		# noinspection PyArgumentList
+		path = os.path.join(game_path, path)
+
+		# noinspection PyUnresolvedReferences
+		if not os.path.exists(path):
+			return 'MESH_DATA'
+
+		_bro_image_collection.load(name, path, 'IMAGE')
+
+	return _bro_image_collection[name].icon_id
+
+
+# noinspection PyTypeHints
+class AddonPreferences(bpy.types.AddonPreferences):
+	bl_idname = __base_package__
+
+	game_data_path: bpy.props.StringProperty(
+		name='Game Data Path',
+		description='Path to the game\'s extracted VFS root',
+		subtype='DIR_PATH',
+		default='')
+
+	def draw(self, _):
+		self.layout.prop(self, 'game_data_path')
+
+	@classmethod
+	def instance(cls) -> Self:
+		return bpy.context.preferences.addons[cls.bl_idname].preferences
+
+
+# noinspection PyTypeHints
+class _ImportTemplate(Operator, ImportHelper):
 	bl_options = {'REGISTER', 'UNDO'}
 
-	# noinspection PyTypeHints
 	files: CollectionProperty(
 		type=bpy.types.OperatorFileListElement,
 		options={'HIDDEN', 'SKIP_SAVE'},
 	)
 
+	directory: StringProperty(get=lambda self: AddonPreferences.instance().game_data_path or '', options={'HIDDEN'})
+
 	def load(self, path: str): pass
 
 	@classmethod
-	def poll(cls, _: Context):
-		return True
+	def poll(cls, _): return True
 
-	def draw(self, context: Context): pass
+	def draw(self, _): pass
 
-	def execute(self, _: Context):
+	def execute(self, _):
 		dirname = os.path.dirname(self.filepath)
 		for file in self.files:
 			# noinspection PyTypeChecker
@@ -42,12 +97,19 @@ class _import_template(Operator, ImportHelper):
 		return {'FINISHED'}
 
 
-# noinspection PyPep8Naming
-class MESH_Operator(_import_template):
-	bl_idname = 'import_mesh.broengine_mesh'
+# noinspection PyTypeHints
+class _VirtualImportTemplate(_ImportTemplate):
+	@classmethod
+	def poll(cls, _):
+		path = AddonPreferences.instance().game_data_path
+		return path and os.path.exists(AddonPreferences.instance().game_data_path)
+
+
+# noinspection PyTypeHints
+class MeshOperator(_ImportTemplate):
+	bl_idname = f'{__base_package__}.broengine_mesh'
 	bl_label = 'Import Bro Engine Mesh'
 
-	# noinspection PyTypeHints
 	filter_glob: StringProperty(default='*.mesh', options={'HIDDEN'})
 
 	def load(self, path):
@@ -56,12 +118,11 @@ class MESH_Operator(_import_template):
 			import_mesh(MeshFile(file), name)
 
 
-# noinspection PyPep8Naming
-class SKEL_Operator(_import_template):
-	bl_idname = 'import_mesh.broengine_skel'
+# noinspection PyTypeHints
+class SkelOperator(_ImportTemplate):
+	bl_idname = f'{__base_package__}.broengine_skel'
 	bl_label = 'Import Bro Engine Skeleton'
 
-	# noinspection PyTypeHints
 	filter_glob: StringProperty(default='*.skel', options={'HIDDEN'})
 
 	def load(self, path):
@@ -71,18 +132,306 @@ class SKEL_Operator(_import_template):
 			create_skeleton(SkelFile(file), blend_obj)
 
 
-def bro_menu_import(self, _: Context):
-	self.layout.operator(MESH_Operator.bl_idname, text="Bro Engine Mesh (.mesh)")
-	self.layout.operator(SKEL_Operator.bl_idname, text="Bro Engine Skeleton (.skel)")
+# noinspection PyTypeHints
+class SceneOperator(_VirtualImportTemplate):
+	bl_idname = f'{__base_package__}.broengine_scene'
+	bl_label = 'Import Bro Engine Scene'
+
+	filter_glob: StringProperty(default='*.prefab;*.world', options={'HIDDEN'})
+
+	def load(self, path):
+		pass
+
+
+# noinspection PyTypeHints
+class MaterialOperator(_VirtualImportTemplate):
+	bl_idname = f'{__base_package__}.broengine_material'
+	bl_label = 'Import Bro Engine Material'
+
+	filter_glob: StringProperty(default='*.material', options={'HIDDEN'})
+
+	def load(self, path):
+		pass
+
+
+class SpecOperator(Operator):
+	bl_options = {'REGISTER', 'UNDO'}
+
+	@classmethod
+	def get_spec_path(cls): return ''
+
+	@classmethod
+	def get_spec_name(cls, name: str) -> str | None: return name
+
+	@classmethod
+	def get_spec(cls) -> list[tuple[str, str, str, str, int]]: return []
+
+	def invoke(self, context: Context, _): return context.window_manager.invoke_props_dialog(self, width=200)
+
+	def draw_extended(self, _): pass
+
+	def draw(self, context: Context):
+		self.layout.label(text=self.bl_header)
+		self.layout.template_icon_view(self, 'spec_selector', show_labels=True)
+		self.layout.label(text=self.get_spec_name(self.spec_selector))
+		self.draw_extended(context)
+
+	@classmethod
+	def poll(cls, _):
+		path = AddonPreferences.instance().game_data_path
+		if not path:
+			return False
+		spec_path = os.path.join(path, cls.get_spec_path())
+		return os.path.exists(spec_path)
+
+	def execute(self, _): return {'FINISHED'}
+
+
+# noinspection PyTypeChecker
+class VehicleRegistryOperator(SpecOperator):
+	bl_idname = f'{__base_package__}.broengine_spec_vehicle'
+	bl_label = 'Import HEAT Vehicle'
+	bl_text = 'Vehicle'
+	bl_header = 'Select a Vehicle'
+
+	# noinspection PyTypeHints
+	spec_selector: bpy.props.EnumProperty(
+		name=bl_header,
+		items=lambda self, _: VehicleRegistryOperator.get_spec()
+	)
+
+	_vehicles: list[tuple[str, str, str, str, int]] | None = None
+	_vehicles_cache: str | None = None
+	_vehicle_names: dict[str, str] | None = None
+
+	@classmethod
+	def get_spec_path(cls):
+		return 'vehicles/vehicles.specs'
+
+	@classmethod
+	def get_spec_name(cls, name: str) -> str | None:
+		if not cls._vehicle_names:
+			return None
+
+		return cls._vehicle_names.get(name)
+
+	@classmethod
+	def get_spec(cls) -> list[tuple[str, str, str, str, int]]:
+		game_path = AddonPreferences.instance().game_data_path
+		spec_path = os.path.join(game_path, cls.get_spec_path())
+
+		if cls._vehicles and cls._vehicles_cache == spec_path:
+			return cls._vehicles
+
+		cls._vehicles_cache = spec_path
+		vehicles = []
+		names = {}
+		registry = rttr.load_rttr(cls.get_spec_path(), game_path)
+		if not registry: return vehicles
+
+		for description in registry.descriptions or []:
+			vehicle_spec = description.spec
+			if not vehicle_spec: continue
+
+			vehicle_spec = rttr.load_rttr(description.spec, game_path).specification
+			if not vehicle_spec: continue
+
+			vehicle_id = f'VEHICLE_{vehicle_spec.technicalName.upper()}'
+			image = _load_preview_image(vehicle_id, vehicle_spec.image)
+			vehicles.append((vehicle_id, vehicle_spec.vehicleName.message, '', image, len(vehicles)))
+			names[vehicle_id] = vehicle_spec.vehicleName.message
+
+		cls._vehicles = vehicles
+		cls._vehicle_names = names
+		return vehicles
+
+
+# noinspection PyTypeChecker
+class FrontmenRegistryOperator(SpecOperator):
+	bl_idname = f'{__base_package__}.broengine_spec_frontmen'
+	bl_label = 'Import HEAT Agent'
+	bl_text = 'Agent'
+	bl_header = 'Select a Agent'
+
+	# noinspection PyTypeHints
+	spec_selector: bpy.props.EnumProperty(
+		name=bl_header,
+		items=lambda self, _: FrontmenRegistryOperator.get_spec()
+	)
+
+	_frontmen: list[tuple[str, str, str, str, int]] | None = None
+	_frontmen_cache: str | None = None
+	_frontmen_names: dict[str, str] | None = None
+
+	@classmethod
+	def get_spec_path(cls):
+		return 'frontmen/frontmen.specs'
+
+	@classmethod
+	def get_spec_name(cls, name: str) -> str | None:
+		if not cls._frontmen_names:
+			return None
+
+		return cls._frontmen_names.get(name)
+
+	@classmethod
+	def get_spec(cls) -> list[tuple[str, str, str, str, int]]:
+		game_path = AddonPreferences.instance().game_data_path
+		spec_path = os.path.join(game_path, cls.get_spec_path())
+
+		if cls._frontmen and cls._frontmen_cache == spec_path:
+			return cls._frontmen
+
+		cls._frontmen_cache = spec_path
+		frontmen = []
+		names = {}
+		registry = rttr.load_rttr(cls.get_spec_path(), game_path)
+		if not registry: return frontmen
+
+		for frontman in registry.frontmen or []:
+			frontman_id = f'FRONTMEN_{frontman.technicalName.upper()}'
+			image = _load_preview_image(frontman_id, frontman.images.Medium)
+			frontmen.append((frontman_id, frontman.name.message, '', image, len(frontmen)))
+			names[frontman_id] = frontman.name.message
+
+		cls._frontmen = frontmen
+		cls._frontmen_names = names
+		return frontmen
+
+
+# noinspection PyTypeChecker
+class WorldRegistryOperator(SpecOperator):
+	bl_idname = f'{__base_package__}.broengine_spec_world'
+	bl_label = 'Import HEAT World'
+	bl_text = 'World'
+	bl_header = 'Select a World'
+
+	# noinspection PyTypeHints
+	spec_selector: bpy.props.EnumProperty(
+		name=bl_header,
+		items=lambda self, _: WorldRegistryOperator.get_spec()
+	)
+
+	_worlds: list[tuple[str, str, str, str, int]] | None = None
+	_world_cache: str | None = None
+	_world_names: dict[str, str] | None = None
+
+	@classmethod
+	def get_spec_path(cls):
+		return 'storages/arenas_demo.specs'
+
+	@classmethod
+	def get_spec_name(cls, name: str) -> str | None:
+		if not cls._world_names:
+			return None
+
+		return cls._world_names.get(name)
+
+	@classmethod
+	def get_spec(cls) -> list[tuple[str, str, str, str, int]]:
+		game_path = AddonPreferences.instance().game_data_path
+		spec_path = os.path.join(game_path, cls.get_spec_path())
+
+		if cls._worlds and cls._world_cache == spec_path:
+			return cls._worlds
+
+		cls._world_cache = spec_path
+		worlds = []
+		names = {}
+		registry = rttr.load_rttr(cls.get_spec_path(), game_path)
+		if not registry: return worlds
+
+		seen = set()
+		for battle_world in registry.battleWorlds or []:
+			if battle_world.baseWorldPath in seen: continue
+			seen.add(battle_world.baseWorldPath)
+			name = battle_world.displayName.message
+			mode = battle_world.gameMode.handle
+			name = name[:-(len(mode) + 1)]
+			world_id = f'WORLD_{battle_world.name.upper()}'
+			world_id = world_id[:-(len(mode) + 1)]
+			print(world_id)
+			image = _load_preview_image(world_id, battle_world.playButtonBackground)
+			worlds.append((world_id, name, '', image, len(worlds)))
+			names[world_id] = name
+
+		if '07_projectphoenix_pve_ftue' not in seen and '/worlds/07_projectphoenix.world' in seen:
+			world_id = 'WORLD_07_PROJECTPHOENIX_PVE_FTUE'
+			image = _load_preview_image('WORLD_07_PROJECTPHOENIX',
+			                            '/ui/assets/worlds/07_projectphoenix/07_projectphoenix_play_button.png')
+			name = 'Project Phoenix PVE'
+			worlds.append((world_id, name, '', image, len(worlds)))
+			names[world_id] = name
+
+		cls._worlds = worlds
+		cls._world_names = names
+		return worlds
+
+
+class BroSpecMenu(bpy.types.Menu):
+	bl_idname = f'TOPBAR_MT_FILE_bro_file_import_spec'
+	bl_label = 'Specification'
+
+	def draw(self, _):
+		self.layout.operator(VehicleRegistryOperator.bl_idname, text=VehicleRegistryOperator.bl_text)
+		self.layout.operator(FrontmenRegistryOperator.bl_idname, text=FrontmenRegistryOperator.bl_text)
+		self.layout.operator(WorldRegistryOperator.bl_idname, text=WorldRegistryOperator.bl_text)
+
+	@classmethod
+	def poll(cls, context: Context):
+		return (VehicleRegistryOperator.poll(context) or
+		        FrontmenRegistryOperator.poll(context) or
+		        WorldRegistryOperator.poll(context))
+
+
+class BroMenu(bpy.types.Menu):
+	bl_idname = f'TOPBAR_MT_FILE_bro_file_import'
+	bl_label = 'BroEngine'
+
+	def draw(self, _):
+		self.layout.operator(MeshOperator.bl_idname, text='Mesh (.mesh)')
+		self.layout.operator(SkelOperator.bl_idname, text='Skeleton (.skel)')
+		self.layout.operator(SceneOperator.bl_idname, text='Scene (.prefab; .world)')
+		self.layout.operator(MaterialOperator.bl_idname, text='Material (.material)')
+		self.layout.menu(BroSpecMenu.bl_idname, text=BroSpecMenu.bl_label)
+
+
+def bro_menu_import(self, _):
+	self.layout.menu(BroMenu.bl_idname, text=BroMenu.bl_label)
 
 
 def register():
-	bpy.utils.register_class(MESH_Operator)
-	bpy.utils.register_class(SKEL_Operator)
+	global _bro_image_collection
+	assert _bro_image_collection is None
+	_bro_image_collection = bpy.utils.previews.new()
+
+	bpy.utils.register_class(MeshOperator)
+	bpy.utils.register_class(SkelOperator)
+	bpy.utils.register_class(SceneOperator)
+	bpy.utils.register_class(MaterialOperator)
+	bpy.utils.register_class(VehicleRegistryOperator)
+	bpy.utils.register_class(FrontmenRegistryOperator)
+	bpy.utils.register_class(WorldRegistryOperator)
+	bpy.utils.register_class(AddonPreferences)
+	bpy.utils.register_class(BroMenu)
+	bpy.utils.register_class(BroSpecMenu)
 	bpy.types.TOPBAR_MT_file_import.append(bro_menu_import)
 
 
 def unregister():
-	bpy.utils.unregister_class(MESH_Operator)
-	bpy.utils.unregister_class(SKEL_Operator)
+	global _bro_image_collection
+	assert _bro_image_collection is not None
+	bpy.utils.previews.remove(_bro_image_collection)
+	_bro_image_collection = None
+
+	bpy.utils.unregister_class(MeshOperator)
+	bpy.utils.unregister_class(SkelOperator)
+	bpy.utils.unregister_class(SceneOperator)
+	bpy.utils.unregister_class(MaterialOperator)
+	bpy.utils.unregister_class(VehicleRegistryOperator)
+	bpy.utils.unregister_class(FrontmenRegistryOperator)
+	bpy.utils.unregister_class(WorldRegistryOperator)
+	bpy.utils.unregister_class(AddonPreferences)
+	bpy.utils.unregister_class(BroMenu)
+	bpy.utils.unregister_class(BroSpecMenu)
 	bpy.types.TOPBAR_MT_file_import.remove(bro_menu_import)

@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: EUPL-1.2
 
-import math
 from collections import defaultdict
 
 import bpy
@@ -55,6 +54,7 @@ def import_mesh(mesh, name):
 			for vertex_index, (weight_start, bone_count) in enumerate(mesh.blend_indices):
 				for weight_index in range(bone_count):
 					(weight, bone_index) = mesh.blend_weights[weight_start + weight_index]
+					# noinspection PyUnresolvedReferences
 					groups[bone_index].add([vertex_index], weight, 'REPLACE')
 		elif mesh.skin_indices is not None:
 			grouped: dict[int, list[int]] = defaultdict(list)
