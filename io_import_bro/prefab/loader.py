@@ -103,4 +103,5 @@ def resolve_prefab(entity, base_path, inherited_overrides=None):
 
 	return resolved_entity
 
+
 __all__ = ['load_prefab', 'resolve_prefab']
