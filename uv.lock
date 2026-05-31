@@ -118,7 +118,7 @@ wheels = [
 
 [[package]]
 name = "io-import-bro"
-version = "1.0.2"
+version = "1.0.1"
 source = { virtual = "." }
 
 [package.dev-dependencies]
