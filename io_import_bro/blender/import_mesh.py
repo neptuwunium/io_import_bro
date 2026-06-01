@@ -16,9 +16,15 @@ def create_material(name):
 	return bpy.data.materials.new(name=name)
 
 
-def import_mesh(mesh, name):
+def import_mesh(mesh, name, parent=None, materials=None):
 	mesh_data = bpy.data.meshes.new(name)
 	blend_obj = bpy.data.objects.new(name, mesh_data)
+	blend_obj.parent = parent
+	bpy.context.view_layer.active_layer_collection.collection.objects.link(blend_obj)
+
+	if not materials:
+		materials = {}
+
 	if mesh.skeleton:
 		(armature_obj, bones) = create_skeleton(mesh.skeleton, blend_obj)
 	else:
@@ -26,7 +32,6 @@ def import_mesh(mesh, name):
 		bones = None
 
 	mesh_data.from_pydata(mesh.positions, [], mesh.indices, shade_flat=False)
-	bpy.context.view_layer.active_layer_collection.collection.objects.link(blend_obj)
 
 	loop_vert_indices = np.empty(len(mesh_data.loops), dtype=np.int32)
 	mesh_data.loops.foreach_get('vertex_index', loop_vert_indices)
@@ -70,7 +75,8 @@ def import_mesh(mesh, name):
 	for material_name, submesh in mesh.submeshes:
 		if material_lookup.get(material_name) is None:
 			material_lookup[material_name] = len(mesh_data.materials)
-			mesh_data.materials.append(create_material(material_name))
+			mesh_data.materials.append(
+				materials[material_name] if material_name in materials else create_material(material_name))
 		material_indices.append(np.full(submesh.triangle_count, material_lookup[material_name], dtype=np.int32))
 	material_indices_cat = np.concatenate(material_indices)
 	mesh_data.polygons.foreach_set('material_index', material_indices_cat)
@@ -82,6 +88,8 @@ def import_mesh(mesh, name):
 	mesh_data.normals_split_custom_set_from_vertices(mesh.normals.tolist())
 
 	bpy.context.view_layer.update()
+
+	return blend_obj
 
 
 if __name__ == '__main__':

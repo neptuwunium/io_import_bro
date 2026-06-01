@@ -14,11 +14,13 @@ from bpy.utils.previews import ImagePreviewCollection
 from bpy_extras.io_utils import ImportHelper
 
 from .import_mesh import import_mesh
+from .import_prefab import create_prefab
 from .import_skel import create_skeleton
 from .. import __package__ as __base_package__
 from ..format.mesh import MeshFile
 from ..format.skel import SkelFile
 from ..prefab import rttr
+from ..prefab.loader import load_prefab
 
 _bro_image_collection: ImagePreviewCollection | None = None
 
@@ -140,7 +142,9 @@ class SceneOperator(_VirtualImportTemplate):
 	filter_glob: StringProperty(default='*.prefab;*.world', options={'HIDDEN'})
 
 	def load(self, path):
-		pass
+		game_path = AddonPreferences.instance().game_data_path
+		root_entity = load_prefab(path, game_path)
+		create_prefab(root_entity, game_path)
 
 
 # noinspection PyTypeHints

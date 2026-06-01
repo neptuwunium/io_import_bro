@@ -10,7 +10,6 @@ class RTTRMaterial:
 	textures: dict[str, str]
 	effect: str
 
-
 	def __init__(self, rttr: RTTRObject | None = None, base: RTTRMaterial | None = None): pass
 
 

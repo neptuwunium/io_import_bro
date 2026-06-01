@@ -36,7 +36,7 @@ def _deep_merge(target, source):
 	return target
 
 
-def load_prefab(prefab_path, base_path, inherited_overrides=None):
+def load_prefab(prefab_path, base_path, inherited_overrides=None, prefab_cache=None):
 	if not prefab_path:
 		return RTTRObject()
 
@@ -49,10 +49,26 @@ def load_prefab(prefab_path, base_path, inherited_overrides=None):
 	else:
 		return RTTRObject()
 
-	return resolve_prefab(load_rttr(prefab_path, base_path).get('entities'), base_path, inherited_overrides)
+	if prefab_cache is None:
+		prefab_cache = {}
+
+	if prefab_path in prefab_cache:
+		return copy.deepcopy(prefab_cache[prefab_path])
+
+	print("loading", prefab_path)
+	entities = load_rttr(prefab_path, base_path).entities
+	if not isinstance(entities, RTTRObject):
+		return RTTRObject()
+
+	prefab = resolve_prefab(entities, base_path, inherited_overrides, prefab_cache)
+	prefab_cache[prefab_path] = prefab
+	return prefab
 
 
-def resolve_prefab(entity, base_path, inherited_overrides=None):
+def resolve_prefab(entity, base_path, inherited_overrides=None, prefab_cache=None):
+	if not entity:
+		return RTTRObject()
+
 	if inherited_overrides is None:
 		inherited_overrides = RTTRObject()
 
@@ -60,7 +76,7 @@ def resolve_prefab(entity, base_path, inherited_overrides=None):
 
 	base_prefab = entity.get('prefab')
 	if base_prefab and isinstance(base_prefab, str):
-		resolved_entity = load_prefab(base_prefab, base_path, inherited_overrides)
+		resolved_entity = load_prefab(base_prefab, base_path, inherited_overrides, prefab_cache)
 
 	active_overrides = copy.deepcopy(inherited_overrides)
 	if 'overrides' in entity:
@@ -88,13 +104,13 @@ def resolve_prefab(entity, base_path, inherited_overrides=None):
 			_deep_merge(resolved_entity['comps'], unpacked_overrides)
 
 	for child in resolved_entity.get('children', []):
-		resolved_children.append(resolve_prefab(child, base_path, active_overrides))
+		resolved_children.append(resolve_prefab(child, base_path, active_overrides, prefab_cache))
 
 	for child in entity.get('children', []):
-		resolved_children.append(resolve_prefab(child, base_path, active_overrides))
+		resolved_children.append(resolve_prefab(child, base_path, active_overrides, prefab_cache))
 
 	for child in override_data.get('children', []):
-		resolved_children.append(resolve_prefab(child, base_path, active_overrides))
+		resolved_children.append(resolve_prefab(child, base_path, active_overrides, prefab_cache))
 
 	if resolved_children:
 		resolved_entity['children'] = resolved_children

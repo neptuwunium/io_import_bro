@@ -32,13 +32,14 @@ class MeshFile:
 
 		position_type = stream.read(1)[0]
 		if position_type == 0:
+			vertices = stream.read(vertex_count * 12)
 			# noinspection PyTypeChecker
-			self.positions = np.frombuffer(stream.read(vertex_count * 12), dtype=np.float32).reshape((-1, 3))[:, [0, 2, 1]]
+			self.positions = np.frombuffer(vertices, dtype=np.float32).reshape((-1, 3))[:, [0, 2, 1]]
 		elif position_type == 1:
+			vertices = stream.read(vertex_count * 8)
+			vertices = np.frombuffer(vertices, dtype=np.float16).reshape((-1, 4))
 			# noinspection PyTypeChecker
-			self.positions = (np.delete(
-				np.frombuffer(stream.read(vertex_count * 8), dtype=np.float16).reshape((-1, 4)), 3, axis=1)
-			                  .astype(np.float32))[:, [0, 2, 1]]
+			self.positions = (np.delete(vertices, 3, axis=1).astype(np.float32))[:, [0, 2, 1]]
 
 		self.tangents = MeshFile._decompress_normal(stream, vertex_count)[:, [0, 2, 1]]
 		self.normals = MeshFile._decompress_normal(stream, vertex_count)[:, [0, 2, 1]]

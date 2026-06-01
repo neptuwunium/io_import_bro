@@ -16,11 +16,20 @@ class RTTRObject(dict):
 			del self[key]
 
 
-def load_rttr(path: str, base_path: str):
+def get_vfs_path(path, base_path):
+	if os.path.exists(path):
+		return path
+
 	if path[0] == '/':
 		path = path[1:]
 
 	path = os.path.join(base_path, path)
+
+	return path
+
+
+def load_rttr(path, base_path):
+	path = get_vfs_path(path, base_path)
 
 	if not os.path.exists(path):
 		return RTTRObject()

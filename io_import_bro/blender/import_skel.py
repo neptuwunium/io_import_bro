@@ -6,17 +6,19 @@ import bpy
 from mathutils import Matrix, Vector
 
 C = Matrix((
-    (1.0, 0.0, 0.0, 0.0),
-    (0.0, 0.0, 1.0, 0.0),
-    (0.0, 1.0, 0.0, 0.0),
-    (0.0, 0.0, 0.0, 1.0)
+	(1.0, 0.0, 0.0, 0.0),
+	(0.0, 0.0, 1.0, 0.0),
+	(0.0, 1.0, 0.0, 0.0),
+	(0.0, 0.0, 0.0, 1.0)
 ))
 
 MIN_BONE_LENGTH = 0.05
 
+
 def create_skeleton(skel, root):
 	armature = bpy.data.armatures.new(root.name)
 	blend_obj = bpy.data.objects.new(root.name, armature)
+	blend_obj.parent = root.parent
 	root.parent = blend_obj
 	bpy.context.collection.objects.link(blend_obj)
 
