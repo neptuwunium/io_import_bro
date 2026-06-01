@@ -18,8 +18,6 @@ def _unflatten_dict(flat_dict, delimiter='/'):
 			current = current[part]
 		if isinstance(value, RTTRObject):
 			current[parts[-1]] = _unflatten_dict(value)
-		elif isinstance(value, list):
-			current[parts[-1]] = [_unflatten_dict(v) if isinstance(value, RTTRObject) else v for v in value]
 		else:
 			current[parts[-1]] = value
 	return unflattened
@@ -29,8 +27,6 @@ def _deep_merge(target, source):
 	for key, value in source.items():
 		if isinstance(value, RTTRObject) and isinstance(target.get(key), RTTRObject):
 			_deep_merge(target[key], value)
-		if isinstance(value, list) and isinstance(target.get(key), list):
-			target[key] += value
 		else:
 			target[key] = copy.deepcopy(value)
 	return target

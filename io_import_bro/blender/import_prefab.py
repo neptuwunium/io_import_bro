@@ -135,7 +135,15 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 			clutter_density = float(model.get("clutterDensity", 0.000))  # todo: procedural clutter
 
 			if abs(clutter_density) < 0.001:
-				mesh = model.meshes["0"]
+				mesh = model.meshes.get("0")
+
+				if mesh is None:
+					lowest = 1024
+					for mesh_idx, value in model.meshes.items():
+						mesh_idx = int(mesh_idx)
+						if mesh_idx < lowest:
+							lowest = mesh_idx
+							mesh = value
 
 				if isinstance(mesh, RTTRObject) and isinstance(mesh.mesh, str):
 					mesh_path = get_vfs_path(mesh.mesh, game_path)
