@@ -133,7 +133,6 @@ def create_prefab(prefab, game_path, slots=None, parent=None):
 
 		if isinstance(model, RTTRObject) and isinstance(model.meshes, list) and len(model.meshes) > 0:
 			clutter_density = float(model.get("clutterDensity", 0.000))  # todo: procedural clutter
-			print(clutter_density)
 
 			if abs(clutter_density) < 0.001:
 				mesh = model.meshes[0]

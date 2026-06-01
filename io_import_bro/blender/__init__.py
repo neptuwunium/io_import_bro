@@ -354,7 +354,6 @@ class WorldRegistryOperator(SpecOperator):
 			name = name[:-(len(mode) + 1)]
 			world_id = f'WORLD_{battle_world.name.upper()}'
 			world_id = world_id[:-(len(mode) + 1)]
-			print(world_id)
 			image = _load_preview_image(world_id, battle_world.playButtonBackground)
 			worlds.append((world_id, name, '', image, len(worlds)))
 			names[world_id] = name
