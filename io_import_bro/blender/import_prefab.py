@@ -131,11 +131,11 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 				bpy.context.view_layer.active_layer_collection.collection.objects.link(state_prefab_obj)
 				create_prefab(load_prefab(state.handle, game_path), game_path, slots, state_prefab_obj, cache)
 
-		if isinstance(model, RTTRObject) and isinstance(model.meshes, list) and len(model.meshes) > 0:
+		if isinstance(model, RTTRObject) and isinstance(model.meshes, RTTRObject) and len(model.meshes) > 0:
 			clutter_density = float(model.get("clutterDensity", 0.000))  # todo: procedural clutter
 
 			if abs(clutter_density) < 0.001:
-				mesh = model.meshes[0]
+				mesh = model.meshes["0"]
 
 				if isinstance(mesh, RTTRObject) and isinstance(mesh.mesh, str):
 					mesh_path = get_vfs_path(mesh.mesh, game_path)
@@ -149,7 +149,7 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 								if not isinstance(material_path, str): continue
 
 								# todo
-								# materials[material_name] = create_material(material_path, game_path)
+								# materials[material_name] = create_material(material_path, game_path, overwrite=False)
 								pass
 
 						mesh_name = f'{prefab.name}::{mesh_name}'
@@ -166,8 +166,8 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 								if cache is not None:
 									cache[mesh.mesh] = mesh_obj.data
 
-	if prefab.children and isinstance(prefab.children, list):
-		for child in prefab.children:
+	if prefab.children and isinstance(prefab.children, RTTRObject):
+		for child in prefab.children.values():
 			if not isinstance(child, RTTRObject): continue
 
 			create_prefab(child, game_path, slots, prefab_obj, cache)

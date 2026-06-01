@@ -36,6 +36,18 @@ def _deep_merge(target, source):
 	return target
 
 
+def transform_lists(rttr):
+	if not isinstance(rttr, RTTRObject):
+		return rttr
+
+	for key, value in rttr.items():
+		if isinstance(value, RTTRObject):
+			transform_lists(value)
+		elif isinstance(value, list):
+			rttr[key] = RTTRObject({ str(index): transform_lists(entry) for index, entry in enumerate(value) })
+
+	return rttr
+
 def load_prefab(prefab_path, base_path, inherited_overrides=None, prefab_cache=None):
 	if not prefab_path:
 		return RTTRObject()
@@ -59,6 +71,8 @@ def load_prefab(prefab_path, base_path, inherited_overrides=None, prefab_cache=N
 	entities = load_rttr(prefab_path, base_path).entities
 	if not isinstance(entities, RTTRObject):
 		return RTTRObject()
+
+	transform_lists(entities)
 
 	prefab = resolve_prefab(entities, base_path, inherited_overrides, prefab_cache)
 	prefab_cache[prefab_path] = prefab
@@ -103,17 +117,19 @@ def resolve_prefab(entity, base_path, inherited_overrides=None, prefab_cache=Non
 			resolved_entity.setdefault('comps', RTTRObject())
 			_deep_merge(resolved_entity['comps'], unpacked_overrides)
 
-	for child in resolved_entity.get('children', []):
+	for child in resolved_entity.get('children', {}).values():
 		resolved_children.append(resolve_prefab(child, base_path, active_overrides, prefab_cache))
 
-	for child in entity.get('children', []):
+	for child in entity.get('children', {}).values():
 		resolved_children.append(resolve_prefab(child, base_path, active_overrides, prefab_cache))
 
-	for child in override_data.get('children', []):
+	for child in override_data.get('children', {}).values():
 		resolved_children.append(resolve_prefab(child, base_path, active_overrides, prefab_cache))
 
 	if resolved_children:
-		resolved_entity['children'] = resolved_children
+		resolved_entity['children'] = RTTRObject({
+			str(index): transform_lists(entry) for index, entry in enumerate(resolved_children)
+		})
 
 	for key, value in entity.items():
 		if key not in ['comps', 'children', 'overrides', 'prefab']:
@@ -127,3 +143,11 @@ def resolve_prefab(entity, base_path, inherited_overrides=None, prefab_cache=Non
 
 
 __all__ = ['load_prefab', 'resolve_prefab']
+
+if __name__ == '__main__':
+	import sys
+	import json
+
+	# todo: make an actual test system
+	root_entity = load_prefab(sys.argv[-1], sys.argv[-2])
+	print(json.dumps(root_entity, indent="\t"))
