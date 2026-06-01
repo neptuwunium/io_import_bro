@@ -154,8 +154,10 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 
 						mesh_name = f'{prefab.name}::{mesh_name}'
 						if cache is not None and mesh.mesh in cache:
+							# todo: material state may be broken if meshes are reused with different materials
+							# need to calculate material hash, something like zlib.crc32(all+of+the+material+paths)
 							blend_obj = bpy.data.objects.new(mesh_name, cache[mesh.mesh])
-							blend_obj.parent = parent
+							blend_obj.parent = prefab_obj
 							bpy.context.view_layer.active_layer_collection.collection.objects.link(blend_obj)
 						else:
 							print('loading', mesh.mesh)

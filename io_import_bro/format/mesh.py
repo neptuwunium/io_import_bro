@@ -17,7 +17,6 @@ class MeshFile:
 		header = MeshHeader.from_buffer_copy(stream.read(sizeof(MeshHeader)))
 		self.header = header
 		assert header.version == 25
-		assert header.flags == 0
 		assert header.submesh_count <= 0xff
 
 		self.submeshes = []
@@ -25,7 +24,6 @@ class MeshFile:
 			name_length = struct.unpack("<I", stream.read(4))[0]
 			name = stream.read(name_length).decode("utf-8")
 			submesh_header = SubmeshHeader.from_buffer_copy(stream.read(sizeof(SubmeshHeader)))
-			assert submesh_header.flags == 0
 			self.submeshes.append((name, submesh_header))
 
 		vertex_count = struct.unpack("<I", stream.read(4))[0]
