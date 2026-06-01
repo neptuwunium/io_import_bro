@@ -96,6 +96,7 @@ class _ImportTemplate(Operator, ImportHelper):
 		for file in self.files:
 			# noinspection PyTypeChecker
 			self.load(os.path.join(dirname, file.name))
+		bpy.context.view_layer.update()
 		return {'FINISHED'}
 
 
@@ -147,7 +148,9 @@ class SceneOperator(_VirtualImportTemplate):
 		cache = None
 		if path.endswith('.world'):
 			cache = {}
-		create_prefab(root_entity, game_path, cache=cache)
+		name = os.path.splitext(os.path.basename(path))[0]
+		blend_obj = bpy.data.objects.new(name, None)
+		create_prefab(root_entity, game_path, parent=blend_obj, cache=cache)
 
 
 # noinspection PyTypeHints

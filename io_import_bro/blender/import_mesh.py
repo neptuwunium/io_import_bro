@@ -87,8 +87,6 @@ def import_mesh(mesh, name, parent=None, materials=None):
 	mesh_data.update(calc_edges=True)
 	mesh_data.normals_split_custom_set_from_vertices(mesh.normals.tolist())
 
-	bpy.context.view_layer.update()
-
 	return blend_obj
 
 

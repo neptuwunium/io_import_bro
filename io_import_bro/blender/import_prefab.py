@@ -24,7 +24,6 @@ SPOT_LIGHT_COMPONENT = 'SpotLightComponent'
 POINT_LIGHT_COMPONENT = 'PointLightComponent'
 TERRAIN_COMPONENT = 'TerrainComponent'
 
-
 def create_light(component, data):
 	if data.type == 'SUN':
 		if isinstance(component.color, RTTRObject):
@@ -101,7 +100,7 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 				bpy.context.view_layer.active_layer_collection.collection.objects.link(light_obj)
 				create_light(light_comp, light_data)
 
-		if isinstance(local_transform, RTTRObject) and len(local_transform) > 0:
+		if isinstance(local_transform, RTTRObject):
 			if isinstance(local_transform.pos, RTTRObject):
 				prefab_obj.location = Vector(
 					(local_transform.pos.get("x", 0),
@@ -131,19 +130,11 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 				bpy.context.view_layer.active_layer_collection.collection.objects.link(state_prefab_obj)
 				create_prefab(load_prefab(state.handle, game_path), game_path, slots, state_prefab_obj, cache)
 
-		if isinstance(model, RTTRObject) and isinstance(model.meshes, RTTRObject) and len(model.meshes) > 0:
+		if isinstance(model, RTTRObject) and isinstance(model.meshes, list) and model.meshes:
 			clutter_density = float(model.get("clutterDensity", 0.000))  # todo: procedural clutter
 
 			if abs(clutter_density) < 0.001:
-				mesh = model.meshes.get("0")
-
-				if mesh is None:
-					lowest = 1024
-					for mesh_idx, value in model.meshes.items():
-						mesh_idx = int(mesh_idx)
-						if mesh_idx < lowest:
-							lowest = mesh_idx
-							mesh = value
+				mesh = model.meshes[0]
 
 				if isinstance(mesh, RTTRObject) and isinstance(mesh.mesh, str):
 					mesh_path = get_vfs_path(mesh.mesh, game_path)
