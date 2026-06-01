@@ -63,7 +63,7 @@ def create_light(component, data):
 		data.size = component.lightSize
 
 
-def create_prefab(prefab, game_path, slots=None, parent=None):
+def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 	if not prefab: return None
 
 	print('creating prefab', prefab.name)
@@ -129,7 +129,7 @@ def create_prefab(prefab, game_path, slots=None, parent=None):
 				state_prefab_obj = bpy.data.objects.new(f'{prefab.name}::DeviceState::{state_name}', None)
 				state_prefab_obj.parent = prefab_obj
 				bpy.context.view_layer.active_layer_collection.collection.objects.link(state_prefab_obj)
-				create_prefab(load_prefab(state.handle, game_path), game_path, slots, state_prefab_obj)
+				create_prefab(load_prefab(state.handle, game_path), game_path, slots, state_prefab_obj, cache)
 
 		if isinstance(model, RTTRObject) and isinstance(model.meshes, list) and len(model.meshes) > 0:
 			clutter_density = float(model.get("clutterDensity", 0.000))  # todo: procedural clutter
@@ -153,16 +153,22 @@ def create_prefab(prefab, game_path, slots=None, parent=None):
 								pass
 
 						mesh_name = f'{prefab.name}::{mesh_name}'
-
-						with open(mesh_path, 'rb') as f:
-							# todo: instance this data
-							import_mesh(MeshFile(f), mesh_name, prefab_obj, materials)
+						if cache is not None and mesh.mesh in cache:
+							blend_obj = bpy.data.objects.new(mesh_name, cache[mesh.mesh])
+							blend_obj.parent = parent
+							bpy.context.view_layer.active_layer_collection.collection.objects.link(blend_obj)
+						else:
+							print('loading', mesh.mesh)
+							with open(mesh_path, 'rb') as f:
+								mesh_obj = import_mesh(MeshFile(f), mesh_name, prefab_obj, materials)
+								if cache is not None:
+									cache[mesh.mesh] = mesh_obj.data
 
 	if prefab.children and isinstance(prefab.children, list):
 		for child in prefab.children:
 			if not isinstance(child, RTTRObject): continue
 
-			create_prefab(child, game_path, slots, prefab_obj)
+			create_prefab(child, game_path, slots, prefab_obj, cache)
 
 	return prefab_obj
 

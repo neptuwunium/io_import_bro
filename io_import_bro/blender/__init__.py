@@ -144,7 +144,10 @@ class SceneOperator(_VirtualImportTemplate):
 	def load(self, path):
 		game_path = AddonPreferences.instance().game_data_path
 		root_entity = load_prefab(path, game_path)
-		create_prefab(root_entity, game_path)
+		cache = None
+		if path.endswith('.world'):
+			cache = {}
+		create_prefab(root_entity, game_path, cache=cache)
 
 
 # noinspection PyTypeHints
