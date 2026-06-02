@@ -7,12 +7,12 @@ BLENDER = blender
 .PHONY: dirs build clean
 
 build: dirs
-	$(BLENDER) --command extension build --source-dir io_import_bro --output-dir build
+	$(BLENDER) --command extension build --source-dir io_scene_bro --output-dir build
 
 dirs:
 	mkdir -p build
 
 clean:
-	rm build/io_import_bro-*.zip
+	rm build/io_scene_bro-*.zip
 
 all: build

@@ -5,7 +5,7 @@ from typing import Optional
 
 import bpy
 
-from io_import_bro.prefab.rttr import RTTRObject
+from ..prefab.rttr import RTTRObject
 
 LOCAL_TRANSFORM_COMPONENT = 'engine::LocalTransformComponent'
 WORLD_TRANSFORM_COMPONENT = 'engine::WorldTransformComponent'

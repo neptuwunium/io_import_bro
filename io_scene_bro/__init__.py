@@ -3,14 +3,14 @@
 # SPDX-License-Identifier: EUPL-1.2
 
 bl_info = {
-	'name': 'io_import_bro',
+	'name': 'BroEngine Importer',
 	'author': 'neptuwunium',
 	'version': (1, 0, 1),
 	'blender': (4, 5, 0),
 	'location': 'File > Import',
-	'description': 'Import BroEngine Mesh',
+	'description': 'Import BroEngine Assets',
 	'warning': '',
-	'tracker_url': 'https://github.com/neptuwunium/io_import_bro',
+	'tracker_url': 'https://github.com/neptuwunium/io_scene_bro',
 	'support': 'COMMUNITY',
 	'category': 'Import-Export'
 }

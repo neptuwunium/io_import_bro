@@ -4,16 +4,16 @@
 
 schema_version = "1.0.0"
 
-id = "io_import_bro"
+id = "io_scene_bro"
 version = "1.0.1"
-name = "BroEngine Mesh Import"
-tagline = "Import mesh files from Bro Engine"
+name = "BroEngine Import"
+tagline = "Import assets from BroEngine games"
 maintainer = "neptuwunium"
 type = "add-on"
 tags = ["Import-Export"]
-website = "https://github.com/neptuwunium/io_import_bro"
+website = "https://github.com/neptuwunium/io_scene_bro"
 
-blender_version_min = "4.5.0"
+blender_version_min = "5.1"
 
 license = [
     "SPDX:EUPL-1.2",

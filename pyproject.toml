@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: EUPL-1.2
 
 [project]
-name = "io_import_bro"
+name = "io_scene_bro"
 version = "1.0.1"
 requires-python = "==3.13.*"
 
@@ -23,4 +23,4 @@ name = "blender"
 url = "https://download.blender.org/pypi/"
 
 [tool.setuptools]
-packages = ["io_import_bro"]
+packages = ["io_scene_bro"]

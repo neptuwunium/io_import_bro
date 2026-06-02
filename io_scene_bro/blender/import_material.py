@@ -7,7 +7,7 @@ import os.path
 
 import bpy
 
-from io_import_bro.prefab.rttr import get_vfs_path
+from ..prefab.rttr import get_vfs_path
 
 LOG = logging.getLogger(f'{__name__}.material')
 SPACING = 25

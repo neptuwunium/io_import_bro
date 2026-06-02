@@ -5,7 +5,7 @@
 import json
 import sys
 
-from io_import_bro.prefab.loader import load_prefab
+from ..prefab.loader import load_prefab
 
 if __name__ == '__main__':
 	# todo: make an actual test system
