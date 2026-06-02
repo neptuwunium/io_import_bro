@@ -5,9 +5,9 @@
 bl_info = {
 	'name': 'BroEngine Importer',
 	'author': 'neptuwunium',
-	'version': (1, 0, 1),
-	'blender': (4, 5, 0),
-	'location': 'File > Import',
+	'version': (1, 1, 0),
+	'blender': (5, 1, 0),
+	'location': 'File > Import > BroEngine',
 	'description': 'Import BroEngine Assets',
 	'warning': '',
 	'tracker_url': 'https://github.com/neptuwunium/io_scene_bro',
