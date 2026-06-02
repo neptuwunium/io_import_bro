@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: EUPL-1.2
 
+import logging
 import os
 from typing import Self
 
@@ -21,8 +22,11 @@ from ..format.mesh import MeshFile
 from ..format.skel import SkelFile
 from ..prefab import rttr
 from ..prefab.loader import load_prefab
+from ..prefab.rttr import RTTRObject
 
 _bro_image_collection: ImagePreviewCollection | None = None
+
+LOG = logging.getLogger(f'{__name__}')
 
 
 def _load_preview_image(name: str, path: str) -> str:
@@ -212,7 +216,7 @@ class VehicleRegistryOperator(SpecOperator):
 
 	_vehicles: list[tuple[str, str, str, str, int]] | None = None
 	_vehicles_cache: str | None = None
-	_vehicle_names: dict[str, str] | None = None
+	_vehicle_data: dict[str, RTTRObject] | None = None
 
 	@classmethod
 	def get_spec_path(cls):
@@ -220,10 +224,11 @@ class VehicleRegistryOperator(SpecOperator):
 
 	@classmethod
 	def get_spec_name(cls, name: str) -> str | None:
-		if not cls._vehicle_names:
+		if not cls._vehicle_data:
 			return None
 
-		return cls._vehicle_names.get(name)
+		# noinspection PyUnresolvedReferences
+		return cls._vehicle_data[name].vehicleName.message
 
 	@classmethod
 	def get_spec(cls) -> list[tuple[str, str, str, str, int]]:
@@ -249,11 +254,77 @@ class VehicleRegistryOperator(SpecOperator):
 			vehicle_id = f'VEHICLE_{vehicle_spec.technicalName.upper()}'
 			image = _load_preview_image(vehicle_id, vehicle_spec.image)
 			vehicles.append((vehicle_id, vehicle_spec.vehicleName.message, '', image, len(vehicles)))
-			names[vehicle_id] = vehicle_spec.vehicleName.message
+			names[vehicle_id] = vehicle_spec
 
 		cls._vehicles = vehicles
-		cls._vehicle_names = names
+		cls._vehicle_data = names
 		return vehicles
+
+	def draw_extended(self, _):
+		# todo: list skins:
+		#  customization2D: customization2D.stylesPacks[]
+		#  ->-> .description.name
+		#  ->-> .prefabConfig.prefab
+		#  customization3D: customization2D.stylesPacks[]
+		#  ->-> .description.name
+		#  customization3D.modulePacks[] <- find .modulesPack
+		#  ->-> .modules[].prefabConfig, customization3D
+		pass
+
+	def execute(self, _):
+		cls = self.__class__
+
+		if not cls._vehicle_data:
+			return {'FINISHED'}
+
+		data = cls._vehicle_data[self.spec_selector]
+		modules = data.modules
+		if not isinstance(modules, list):
+			return {'FINISHED'}
+
+		slot_assignments = {}
+		slots = {}
+		game_path = AddonPreferences.instance().game_data_path
+
+		name = data.vehicleName.message
+		blend_obj = bpy.data.objects.new(name, None)
+
+		for module in modules:
+			prefab_configs = module.get('general', {}).get('prefabConfig', [])
+			if not isinstance(prefab_configs, list) or not prefab_configs:
+				continue
+
+			# todo: prefabOverrides
+			if module.get('prefabOverrides'):
+				LOG.warning('module \"%s\" has prefab overrides!', module.general.name)
+
+			for prefab_config in prefab_configs:
+				if not isinstance(prefab_config, RTTRObject):
+					continue
+
+				prefab_path = prefab_config.prefab
+				if not prefab_path:
+					continue
+
+				slot = prefab_config.get('slot', {}).get('handle')
+				# todo: style system
+				if slot and (slot == 'Style' or slot.startswith('Progression')):
+					continue
+
+				prefab_entity = load_prefab(prefab_path, game_path)
+				slot_prefab = create_prefab(prefab_entity, game_path, parent=blend_obj, slots=slots)
+				if slot_prefab and slot:
+					if slot not in slot_assignments:
+						slot_assignments[slot] = []
+					slot_assignments[slot].append(slot_prefab)
+		for slot_name, slot_object in slots.items():
+			if slot_name not in slot_assignments:
+				continue
+			for slot_prefab in slot_assignments[slot_name]:
+				slot_prefab.parent = slot_object
+
+		bpy.context.view_layer.update()
+		return {'FINISHED'}
 
 
 # noinspection PyTypeChecker
