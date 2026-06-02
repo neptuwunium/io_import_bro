@@ -23,16 +23,17 @@ def _unflatten_dict(flat_dict, delimiter='/'):
 	for key, value in flat_dict.items():
 		parts = key.split(delimiter)
 		current = unflattened
-		for part in parts[:-1]:
+		last = parts.pop()
+		for part in parts:
 			if part not in current:
 				current[part] = RTTRObject()
 			current = current[part]
 		if isinstance(value, RTTRObject):
-			current[parts[-1]] = _unflatten_dict(value, delimiter)
+			current[last] = _unflatten_dict(value, delimiter)
 		elif isinstance(value, list) and value and isinstance(value[0], RTTRObject):
-			current[parts[-1]] = [_unflatten_dict(item, delimiter) for item in value]
+			current[last] = [_unflatten_dict(item, delimiter) for item in value]
 		else:
-			current[parts[-1]] = value
+			current[last] = value
 	return unflattened
 
 
