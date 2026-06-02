@@ -7,22 +7,28 @@ import os
 from typing import Self
 
 import bpy
-import bpy.utils.previews
+# noinspection PyUnresolvedReferences
 from bpy.props import StringProperty, CollectionProperty
 # noinspection PyUnresolvedReferences
 from bpy.types import Operator, Context, Property, OperatorFileListElement, ImagePreview, TOPBAR_MT_file_import
+# noinspection PyUnresolvedReferences
 from bpy.utils.previews import ImagePreviewCollection
+# noinspection PyUnresolvedReferences
 from bpy_extras.io_utils import ImportHelper
+# noinspection PyUnresolvedReferences
+import bpy.utils.previews
 
-from .import_mesh import import_mesh
-from .import_prefab import create_prefab
-from .import_skel import create_skeleton
 from .. import __package__ as __base_package__
 from ..format.mesh import MeshFile
 from ..format.skel import SkelFile
 from ..prefab import rttr
 from ..prefab.loader import load_prefab
+from ..prefab.material import load_material
 from ..prefab.rttr import RTTRObject
+from .import_material import create_material
+from .import_mesh import import_mesh
+from .import_prefab import create_prefab
+from .import_skel import create_skeleton
 
 _bro_image_collection: ImagePreviewCollection | None = None
 
@@ -165,8 +171,9 @@ class MaterialOperator(_VirtualImportTemplate):
 	filter_glob: StringProperty(default='*.material', options={'HIDDEN'})
 
 	def load(self, path):
-		pass
-
+		game_path = AddonPreferences.instance().game_data_path
+		material = load_material(path, game_path)
+		create_material(material, os.path.splitext(os.path.basename(path))[0], game_path)
 
 class SpecOperator(Operator):
 	bl_options = {'REGISTER', 'UNDO'}
@@ -378,6 +385,11 @@ class FrontmenRegistryOperator(SpecOperator):
 		cls._frontmen_data = names
 		return frontmen
 
+	def draw_extended(self, _):
+		# todo: list skins:
+		#  elements
+		pass
+
 	def execute(self, _):
 		cls = self.__class__
 
@@ -438,7 +450,7 @@ class WorldRegistryOperator(SpecOperator):
 
 	_worlds: list[tuple[str, str, str, str, int]] | None = None
 	_world_cache: str | None = None
-	_world_names: dict[str, str] | None = None
+	_world_names: dict[str, tuple[str, str]] | None = None
 
 	@classmethod
 	def get_spec_path(cls):
@@ -449,7 +461,7 @@ class WorldRegistryOperator(SpecOperator):
 		if not cls._world_names:
 			return None
 
-		return cls._world_names.get(name)
+		return cls._world_names[name][0]
 
 	@classmethod
 	def get_spec(cls) -> list[tuple[str, str, str, str, int]]:
@@ -476,7 +488,7 @@ class WorldRegistryOperator(SpecOperator):
 			world_id = world_id[:-(len(mode) + 1)]
 			image = _load_preview_image(world_id, battle_world.playButtonBackground)
 			worlds.append((world_id, name, '', image, len(worlds)))
-			names[world_id] = name
+			names[world_id] = (name, battle_world.baseWorldPath)
 
 		if '07_projectphoenix_pve_ftue' not in seen and '/worlds/07_projectphoenix.world' in seen:
 			world_id = 'WORLD_07_PROJECTPHOENIX_PVE_FTUE'
@@ -489,6 +501,23 @@ class WorldRegistryOperator(SpecOperator):
 		cls._worlds = worlds
 		cls._world_names = names
 		return worlds
+
+	def draw_extended(self, _):
+		# todo: list game modes
+		pass
+
+	def execute(self, _):
+		cls = self.__class__
+
+		if not cls._world_names:
+			return {'FINISHED'}
+
+		game_path = AddonPreferences.instance().game_data_path
+		world_name, world_path = cls._world_names.get(self.spec_selector)
+		blend_obj = bpy.data.objects.new(world_name, None)
+		root_entity = load_prefab(world_path, game_path)
+		create_prefab(root_entity, game_path, parent=blend_obj, cache={})
+		return {'FINISHED'}
 
 
 class BroSpecMenu(bpy.types.Menu):
