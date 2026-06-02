@@ -4,6 +4,7 @@
 
 import logging
 import os
+import time
 from typing import Self
 
 import bpy
@@ -89,7 +90,7 @@ class _ImportTemplate(Operator, ImportHelper):
 
 	files: CollectionProperty(
 		type=bpy.types.OperatorFileListElement,
-		options={'HIDDEN', 'SKIP_SAVE'},
+		options={'HIDDEN'},
 	)
 
 	directory: StringProperty(get=lambda self: AddonPreferences.instance().game_data_path or '', options={'HIDDEN'})
@@ -101,12 +102,17 @@ class _ImportTemplate(Operator, ImportHelper):
 
 	def draw(self, _): pass
 
-	def execute(self, _):
+	def execute(self, context: Context):
 		dirname = os.path.dirname(self.filepath)
+		context.preferences.edit.use_global_undo = False
+		start_time = time.perf_counter()
 		for file in self.files:
 			# noinspection PyTypeChecker
 			self.load(os.path.join(dirname, file.name))
-		bpy.context.view_layer.update()
+		context.view_layer.update()
+		end_time = time.perf_counter()
+		logging.info("took %.6f seconds", end_time - start_time)
+		context.preferences.edit.use_global_undo = True
 		return {'FINISHED'}
 
 
@@ -205,7 +211,17 @@ class SpecOperator(Operator):
 		spec_path = os.path.join(path, cls.get_spec_path())
 		return os.path.exists(spec_path)
 
-	def execute(self, _): return {'FINISHED'}
+	def execute_core(self, context: Context): pass
+
+	def execute(self, context: Context):
+		context.preferences.edit.use_global_undo = False
+		start_time = time.perf_counter()
+		self.execute_core(context)
+		end_time = time.perf_counter()
+		context.view_layer.update()
+		logging.info("took %.6f seconds", end_time - start_time)
+		context.preferences.edit.use_global_undo = True
+		return {'FINISHED'}
 
 
 # noinspection PyTypeChecker
@@ -278,16 +294,16 @@ class VehicleRegistryOperator(SpecOperator):
 		#  ->-> .modules[].prefabConfig, customization3D
 		pass
 
-	def execute(self, _):
+	def execute_core(self, _):
 		cls = self.__class__
 
 		if not cls._vehicle_data:
-			return {'FINISHED'}
+			return
 
 		data = cls._vehicle_data[self.spec_selector]
 		modules = data.modules
 		if not isinstance(modules, list):
-			return {'FINISHED'}
+			return
 
 		slot_assignments = {}
 		slots = {}
@@ -327,9 +343,6 @@ class VehicleRegistryOperator(SpecOperator):
 				continue
 			for slot_prefab in slot_assignments[slot_name]:
 				slot_prefab.parent = slot_object
-
-		bpy.context.view_layer.update()
-		return {'FINISHED'}
 
 
 # noinspection PyTypeChecker
@@ -390,16 +403,16 @@ class FrontmenRegistryOperator(SpecOperator):
 		#  elements
 		pass
 
-	def execute(self, _):
+	def execute_core(self, _):
 		cls = self.__class__
 
 		if not cls._frontmen_data:
-			return {'FINISHED'}
+			return
 
 		data = cls._frontmen_data[self.spec_selector]
 		elements = data.elements.default
 		if not isinstance(elements, list):
-			return {'FINISHED'}
+			return
 
 		slot_assignments = {}
 		slots = {}
@@ -430,9 +443,6 @@ class FrontmenRegistryOperator(SpecOperator):
 				continue
 			for slot_prefab in slot_assignments[slot_name]:
 				slot_prefab.parent = slot_object
-
-		bpy.context.view_layer.update()
-		return {'FINISHED'}
 
 
 # noinspection PyTypeChecker
@@ -506,18 +516,17 @@ class WorldRegistryOperator(SpecOperator):
 		# todo: list game modes
 		pass
 
-	def execute(self, _):
+	def execute_core(self, _):
 		cls = self.__class__
 
 		if not cls._world_names:
-			return {'FINISHED'}
+			return
 
 		game_path = AddonPreferences.instance().game_data_path
 		world_name, world_path = cls._world_names.get(self.spec_selector)
 		blend_obj = bpy.data.objects.new(world_name, None)
 		root_entity = load_prefab(world_path, game_path)
 		create_prefab(root_entity, game_path, parent=blend_obj, cache={})
-		return {'FINISHED'}
 
 
 class BroSpecMenu(bpy.types.Menu):
