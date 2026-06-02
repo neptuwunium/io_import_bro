@@ -298,7 +298,7 @@ class VehicleRegistryOperator(SpecOperator):
 		cls = self.__class__
 
 		if not cls._vehicle_data:
-			return
+			cls.get_spec()
 
 		data = cls._vehicle_data[self.spec_selector]
 		modules = data.modules
@@ -407,7 +407,7 @@ class FrontmenRegistryOperator(SpecOperator):
 		cls = self.__class__
 
 		if not cls._frontmen_data:
-			return
+			cls.get_spec()
 
 		data = cls._frontmen_data[self.spec_selector]
 		elements = data.elements.default
@@ -520,7 +520,7 @@ class WorldRegistryOperator(SpecOperator):
 		cls = self.__class__
 
 		if not cls._world_names:
-			return
+			cls.get_spec()
 
 		game_path = AddonPreferences.instance().game_data_path
 		world_name, world_path = cls._world_names.get(self.spec_selector)
