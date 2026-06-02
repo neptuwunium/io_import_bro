@@ -3,10 +3,11 @@
 # SPDX-License-Identifier: EUPL-1.2
 
 import json
-import os.path
 import logging
+import os.path
 
 LOG = logging.getLogger(f'{__name__}.rttr')
+
 
 class RTTRObject(dict):
 	def __getattr__(self, key): return self.get(key)

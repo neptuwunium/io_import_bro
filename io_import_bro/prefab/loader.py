@@ -8,6 +8,7 @@ from .rttr import RTTRObject, load_rttr
 
 _IGNORE_FIELDS = ['comps', 'children', 'overrides', 'prefab']
 
+
 def _unflatten_dict(flat_dict, delimiter='/'):
 	unflattened = RTTRObject()
 	for key, value in flat_dict.items():
@@ -81,7 +82,7 @@ def _map_children(children):
 	if not isinstance(children, list):
 		return children
 
-	return RTTRObject({ child.uuid: child for child in children })
+	return RTTRObject({child.uuid: child for child in children})
 
 
 def resolve_prefab(entity, base_path, inherited_overrides=None, prefab_cache=None):

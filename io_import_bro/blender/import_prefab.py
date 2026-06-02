@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: EUPL-1.2
 
+import logging
 import math
 import os.path
-import logging
 
 import bpy
 from mathutils import Vector
@@ -29,6 +29,7 @@ DIRECTIONAL_LIGHT_COMPONENT = 'DirectionalLightComponent'
 SPOT_LIGHT_COMPONENT = 'SpotLightComponent'
 POINT_LIGHT_COMPONENT = 'PointLightComponent'
 TERRAIN_COMPONENT = 'TerrainComponent'
+
 
 def create_light(component, data):
 	if data.type == 'SUN':

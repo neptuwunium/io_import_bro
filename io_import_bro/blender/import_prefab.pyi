@@ -23,5 +23,5 @@ TERRAIN_COMPONENT = 'TerrainComponent'
 def create_prefab(prefab: Optional[RTTRObject], game_path: str,
                   slots: Optional[dict[str, bpy.types.Object]] = None,
                   parent: Optional[bpy.types.Object] = None,
-				  cache: Optional[dict[str, bpy.types.Mesh]] = None) -> \
+                  cache: Optional[dict[str, bpy.types.Mesh]] = None) -> \
 		Optional[bpy.types.Object]: pass

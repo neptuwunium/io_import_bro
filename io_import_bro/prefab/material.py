@@ -4,9 +4,9 @@
 
 import copy
 import struct
+from zlib import crc32
 
 from mathutils import Vector, Matrix
-from zlib import crc32
 
 from .rttr import RTTRObject, load_rttr
 
@@ -43,7 +43,6 @@ class RTTRMaterial:
 				if not texture["texture"] or not texture["name"]: continue
 				self.properties.textures[texture["name"]] = texture["texture"]
 
-
 	@property
 	def hash_id(self):
 		if self._hash_id:
@@ -56,7 +55,7 @@ class RTTRMaterial:
 
 		for name, value in self.properties.matrices.items():
 			# noinspection PyTypeChecker
-			value_bytes = struct.pack('=16f', *(tuple(value[0])+tuple(value[1])+tuple(value[2])+tuple(value[3])))
+			value_bytes = struct.pack('=16f', *(tuple(value[0]) + tuple(value[1]) + tuple(value[2]) + tuple(value[3])))
 			h = crc32(f'{name}='.encode(), h)
 			h = crc32(value_bytes, h)
 
@@ -152,6 +151,7 @@ class RTTRMaterial:
 				case "engine::InternedString":
 					self.properties.textures[prop["name"]] = str(value.get('__value__', ''))
 
+
 def load_material(material_path, base_path, cache=None):
 	if not material_path:
 		return RTTRMaterial()
@@ -172,6 +172,7 @@ def resolve_material(material, base_path, cache=None):
 	else:
 		base_material = RTTRMaterial()
 	return RTTRMaterial(RTTRObject(material), base_material)
+
 
 if __name__ == '__main__':
 	import sys

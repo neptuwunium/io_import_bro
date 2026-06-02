@@ -13,6 +13,7 @@ from io_import_bro.prefab.rttr import get_vfs_path
 LOG = logging.getLogger(f'{__name__}.material')
 SPACING = 25
 
+
 def load_image(texture_path, root_path):
 	path = get_vfs_path(texture_path, root_path)
 	if not os.path.exists(path):
@@ -25,6 +26,7 @@ def load_image(texture_path, root_path):
 	image.alpha_mode = 'CHANNEL_PACKED'
 
 	return image
+
 
 def create_material(material, name, root_path):
 	name = f'{name}::{hex(material.hash_id)[2:]}'

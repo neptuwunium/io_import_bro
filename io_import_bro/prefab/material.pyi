@@ -29,7 +29,7 @@ class RTTRMaterial:
 	def _parse_properties(self, properties: list[RTTRObject]): pass
 
 
-def load_material(material_path: str, base_path: str, cache: dict[str, RTTRMaterial]=None) -> RTTRMaterial: pass
+def load_material(material_path: str, base_path: str, cache: dict[str, RTTRMaterial] = None) -> RTTRMaterial: pass
 
 
 def resolve_material(material: RTTRObject, base_path: str) -> RTTRMaterial: pass
