@@ -2,11 +2,20 @@
 #
 # SPDX-License-Identifier: EUPL-1.2
 
-import copy
-
 from .rttr import RTTRObject, load_rttr
 
 _IGNORE_FIELDS = ['comps', 'children', 'overrides', 'prefab']
+
+
+def _clone(obj):
+	if isinstance(obj, RTTRObject):
+		res = RTTRObject()
+		for k, v in obj.items():
+			res[k] = _clone(v)
+		return res
+	elif isinstance(obj, list):
+		return [_clone(v) for v in obj]
+	return obj
 
 
 def _unflatten_dict(flat_dict, delimiter='/'):
@@ -31,23 +40,23 @@ def _deep_merge(target, source):
 	if isinstance(target, list) and isinstance(source, RTTRObject):
 		for key, value in source.items():
 			idx = int(key)
-			if 0 < idx:
+			if idx < 0:
 				continue
 			elif idx < len(target):
 				if isinstance(value, RTTRObject) and isinstance(target[idx], (RTTRObject, list)):
 					_deep_merge(target[idx], value)
 				else:
-					target[idx] = copy.deepcopy(value)
+					target[idx] = _clone(value)
 			else:
-				target[idx] += [RTTRObject() for _ in range(len(target) + idx + 1)]
-				target[idx] = copy.deepcopy(value)
+				target.extend([RTTRObject() for _ in range(idx - len(target) + 1)])
+				target[idx] = _clone(value)
 	elif isinstance(target, RTTRObject) and isinstance(source, RTTRObject):
 		for key, value in source.items():
 			target_val = target.get(key)
 			if isinstance(value, RTTRObject) and isinstance(target_val, (RTTRObject, list)):
 				_deep_merge(target_val, value)
 			else:
-				target[key] = copy.deepcopy(value)
+				target[key] = _clone(value)
 	return target
 
 
@@ -75,7 +84,8 @@ def load_prefab(prefab_path, base_path, inherited_overrides=None, prefab_cache=N
 			return RTTRObject()
 
 		prefab_cache[prefab_path] = resolve_prefab(entities, base_path, inherited_overrides, prefab_cache)
-	return copy.deepcopy(prefab_cache[prefab_path])
+
+	return _clone(prefab_cache[prefab_path])
 
 
 def _map_children(children):
@@ -89,9 +99,10 @@ def resolve_prefab(entity, base_path, inherited_overrides=None, prefab_cache=Non
 	if not entity:
 		return RTTRObject()
 
-	if inherited_overrides is None:
-		inherited_overrides = RTTRObject()
-	active_overrides = copy.deepcopy(inherited_overrides)
+	active_overrides = RTTRObject()
+	if inherited_overrides:
+		for k, v in inherited_overrides.items():
+			active_overrides[k] = v
 
 	resolved_entity = RTTRObject()
 
@@ -102,8 +113,10 @@ def resolve_prefab(entity, base_path, inherited_overrides=None, prefab_cache=Non
 	if 'overrides' in entity:
 		for target_uuid, override_data in entity['overrides'].items():
 			if target_uuid not in active_overrides:
-				active_overrides[target_uuid] = copy.deepcopy(override_data)
+				active_overrides[target_uuid] = _clone(override_data)
 			else:
+				if active_overrides[target_uuid] is (inherited_overrides and inherited_overrides.get(target_uuid)):
+					active_overrides[target_uuid] = _clone(active_overrides[target_uuid])
 				_deep_merge(active_overrides[target_uuid], override_data)
 
 	if 'comps' in entity:
@@ -120,7 +133,7 @@ def resolve_prefab(entity, base_path, inherited_overrides=None, prefab_cache=Non
 			resolved_entity.setdefault('comps', RTTRObject())
 			_deep_merge(resolved_entity['comps'], unpacked_overrides)
 
-	raw_children = _map_children(copy.deepcopy(resolved_entity.get('children', [])))
+	raw_children = _map_children(resolved_entity.get('children', []))
 	_deep_merge(raw_children, _map_children(entity.get('children', [])))
 	_deep_merge(raw_children, _map_children(override_data.get('children', [])))
 
@@ -133,11 +146,11 @@ def resolve_prefab(entity, base_path, inherited_overrides=None, prefab_cache=Non
 
 	for key, value in entity.items():
 		if key not in _IGNORE_FIELDS:
-			resolved_entity[key] = copy.deepcopy(value)
+			resolved_entity[key] = _clone(value)
 
 	for key, value in override_data.items():
 		if key not in _IGNORE_FIELDS:
-			resolved_entity[key] = copy.deepcopy(value)
+			resolved_entity[key] = _clone(value)
 
 	return resolved_entity
 
