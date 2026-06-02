@@ -308,8 +308,6 @@ class VehicleRegistryOperator(SpecOperator):
 
 				slot = prefab_config.get('slot', {}).get('handle')
 				# todo: style system
-				if slot and (slot == 'Style' or slot.startswith('Progression')):
-					continue
 
 				prefab_entity = load_prefab(prefab_path, game_path)
 				slot_prefab = create_prefab(prefab_entity, game_path, parent=blend_obj, slots=slots)
@@ -342,7 +340,7 @@ class FrontmenRegistryOperator(SpecOperator):
 
 	_frontmen: list[tuple[str, str, str, str, int]] | None = None
 	_frontmen_cache: str | None = None
-	_frontmen_names: dict[str, str] | None = None
+	_frontmen_data: dict[str, RTTRObject] | None = None
 
 	@classmethod
 	def get_spec_path(cls):
@@ -350,10 +348,11 @@ class FrontmenRegistryOperator(SpecOperator):
 
 	@classmethod
 	def get_spec_name(cls, name: str) -> str | None:
-		if not cls._frontmen_names:
+		if not cls._frontmen_data:
 			return None
 
-		return cls._frontmen_names.get(name)
+		# noinspection PyUnresolvedReferences
+		return cls._frontmen_data[name].name.message
 
 	@classmethod
 	def get_spec(cls) -> list[tuple[str, str, str, str, int]]:
@@ -373,11 +372,55 @@ class FrontmenRegistryOperator(SpecOperator):
 			frontman_id = f'FRONTMEN_{frontman.technicalName.upper()}'
 			image = _load_preview_image(frontman_id, frontman.images.Medium)
 			frontmen.append((frontman_id, frontman.name.message, '', image, len(frontmen)))
-			names[frontman_id] = frontman.name.message
+			names[frontman_id] = frontman
 
 		cls._frontmen = frontmen
-		cls._frontmen_names = names
+		cls._frontmen_data = names
 		return frontmen
+
+	def execute(self, _):
+		cls = self.__class__
+
+		if not cls._frontmen_data:
+			return {'FINISHED'}
+
+		data = cls._frontmen_data[self.spec_selector]
+		elements = data.elements.default
+		if not isinstance(elements, list):
+			return {'FINISHED'}
+
+		slot_assignments = {}
+		slots = {}
+		game_path = AddonPreferences.instance().game_data_path
+
+		name = data.name.message
+		blend_obj = bpy.data.objects.new(name, None)
+
+		for element in elements:
+			if not isinstance(element, RTTRObject):
+				continue
+
+			prefab_path = element.prefab
+			if not prefab_path:
+				continue
+
+			slot = element.get('slot', {}).get('handle')
+			# todo: style system
+
+			prefab_entity = load_prefab(prefab_path, game_path)
+			slot_prefab = create_prefab(prefab_entity, game_path, parent=blend_obj, slots=slots)
+			if slot_prefab and slot:
+				if slot not in slot_assignments:
+					slot_assignments[slot] = []
+				slot_assignments[slot].append(slot_prefab)
+		for slot_name, slot_object in slots.items():
+			if slot_name not in slot_assignments:
+				continue
+			for slot_prefab in slot_assignments[slot_name]:
+				slot_prefab.parent = slot_object
+
+		bpy.context.view_layer.update()
+		return {'FINISHED'}
 
 
 # noinspection PyTypeChecker
