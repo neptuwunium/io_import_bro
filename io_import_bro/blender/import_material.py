@@ -6,7 +6,6 @@ import logging
 import os.path
 
 import bpy
-from mathutils import Vector
 
 from io_import_bro.prefab.rttr import get_vfs_path
 
@@ -71,7 +70,7 @@ def create_material(material, name, root_path):
 		node = node_tree.nodes.new('ShaderNodeTexImage')
 		node.image = load_image(texture, root_path)
 		node.location = x - 100, y
-		node.label = name
+		node.label = node.name = name
 		if name in group_node.inputs:
 			node_tree.links.new(node.outputs[0], group_node.inputs[name])
 		if alpha_node_name in group_node.inputs:
@@ -89,7 +88,7 @@ def create_material(material, name, root_path):
 		node = node_tree.nodes.new('ShaderNodeValue')
 		node.location = x, y
 		node.outputs[0].default_value = value
-		node.label = name
+		node.label = node.name = name
 		if name in group_node.inputs:
 			node_tree.links.new(node.outputs[0], group_node.inputs[name])
 		y -= int(node.height / 2 + SPACING)
@@ -100,7 +99,7 @@ def create_material(material, name, root_path):
 		node = node_tree.nodes.new('ShaderNodeValue')
 		node.location = x, y
 		node.outputs[0].default_value = float(value)
-		node.label = name
+		node.label = node.name = name
 		if name in group_node.inputs:
 			node_tree.links.new(node.outputs[0], group_node.inputs[name])
 		y -= int(node.height / 2 + SPACING)
@@ -111,7 +110,7 @@ def create_material(material, name, root_path):
 		node = node_tree.nodes.new('ShaderNodeValue')
 		node.location = x, y
 		node.outputs[0].default_value = 1.0 if value else 0
-		node.label = name
+		node.label = node.name = name
 		if name in group_node.inputs:
 			node_tree.links.new(node.outputs[0], group_node.inputs[name])
 		y -= int(node.height / 2 + SPACING)
@@ -124,18 +123,18 @@ def create_material(material, name, root_path):
 
 	for name, value in material.properties.colors.items():
 		alpha_node_name = name + ' Alpha'
-		node = node_tree.nodes.new('ShaderNodeRGB')
+		node = node_tree.nodes.new('FunctionNodeInputVector')
 		node.location = x, y
-		node.outputs[0].default_value = Vector((value.x, value.y, value.z, 1.0))
-		node.label = name
+		node.vector = value.xyz
+		node.label = node.name = name
 		if name in group_node.inputs:
 			node_tree.links.new(node.outputs[0], group_node.inputs[name])
-		y -= int(node.height + 50 + SPACING)
+		y -= int(node.height - 10 + SPACING)
 
 		node = node_tree.nodes.new('ShaderNodeValue')
 		node.location = x, y
 		node.outputs[0].default_value = value.w
-		node.label = alpha_node_name
+		node.label = node.name = alpha_node_name
 		if alpha_node_name in group_node.inputs:
 			node_tree.links.new(node.outputs[0], group_node.inputs[alpha_node_name])
 		y -= int(node.height / 2 + SPACING)
