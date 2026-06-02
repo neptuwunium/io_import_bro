@@ -13,7 +13,7 @@ class RTTRObject(dict):
 	def __delattr__(self, key: str): pass
 
 
-def get_vfs_path(path: str, base_path: str) -> str: pass
+def get_vfs_path(vfs_path: str, base_path: str) -> str: pass
 
 
-def load_rttr(path: str, base_path: str) -> RTTRObject: pass
+def load_rttr(vfs_path: str, base_path: str) -> RTTRObject: pass

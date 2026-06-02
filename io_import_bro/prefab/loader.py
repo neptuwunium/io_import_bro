@@ -60,15 +60,16 @@ def load_prefab(prefab_path, base_path, inherited_overrides=None, prefab_cache=N
 	elif prefab_path.endswith('.world'):
 		if not prefab_path.endswith(".client.world"):
 			prefab_path = prefab_path[:-len(".world")] + ".client.world"
-	else:
-		return RTTRObject()
 
 	if prefab_cache is None:
 		prefab_cache = {}
 
 	if prefab_path not in prefab_cache:
-		print("loading", prefab_path)
-		entities = load_rttr(prefab_path, base_path).entities
+		rttr = load_rttr(prefab_path, base_path)
+		if '__type__' in rttr and rttr['__type__'] != 'engine::io::SceneResource::RawData':
+			return RTTRObject()
+
+		entities = rttr.entities
 		if not isinstance(entities, RTTRObject):
 			return RTTRObject()
 

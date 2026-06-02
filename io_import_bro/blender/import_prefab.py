@@ -4,20 +4,26 @@
 
 import math
 import os.path
+import logging
 
 import bpy
 from mathutils import Vector
 
+from .import_material import create_material
 from .import_mesh import import_mesh
 from ..format.mesh import MeshFile
 from ..prefab.loader import load_prefab
+from ..prefab.material import load_material
 from ..prefab.rttr import RTTRObject, get_vfs_path
+
+LOG = logging.getLogger(f'{__name__}.import_prefab')
 
 LOCAL_TRANSFORM_COMPONENT = 'engine::LocalTransformComponent'
 WORLD_TRANSFORM_COMPONENT = 'engine::WorldTransformComponent'
 DEVICE_COMPONENT = 'cw::DeviceComponent'
 DEVICE_SLOTS_COMPONENT = 'cw::VehicleSlotMarkerComponent'
 MODEL_COMPONENT = 'ModelComponent'
+SKELETON_COMPONENT = 'SkeletonComponent'
 SUN_LIGHT_COMPONENT = 'SunAndPlanetsComponent'
 DIRECTIONAL_LIGHT_COMPONENT = 'DirectionalLightComponent'
 SPOT_LIGHT_COMPONENT = 'SpotLightComponent'
@@ -65,7 +71,7 @@ def create_light(component, data):
 def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 	if not prefab: return None
 
-	print('creating prefab', prefab.name)
+	LOG.info('creating prefab "%s"', prefab.name)
 	prefab_obj = bpy.data.objects.new(prefab.name, None)
 	prefab_obj.parent = parent
 	bpy.context.view_layer.active_layer_collection.collection.objects.link(prefab_obj)
@@ -143,27 +149,27 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 						mesh_name = mesh.labelText or os.path.splitext(os.path.basename(mesh_path))[0]
 
 						materials = {}
+						cache_id = mesh.mesh
 						if isinstance(mesh.materials, RTTRObject):
 							for material_name, material_path in mesh.materials.items():
 								if not isinstance(material_path, str): continue
 
-								# todo
-								# materials[material_name] = create_material(material_path, game_path, overwrite=False)
-								pass
+								material = load_material(material_path, game_path, cache)
+								materials[material_name] = create_material(material, material_name, game_path)
+								if cache is not None:
+									cache_id += f"[{material_name}::{material.hash_id}]"
 
 						mesh_name = f'{prefab.name}::{mesh_name}'
-						if cache is not None and mesh.mesh in cache:
-							# todo: material state may be broken if meshes are reused with different materials
-							# need to calculate material hash, something like zlib.crc32(all+of+the+material+paths)
-							blend_obj = bpy.data.objects.new(mesh_name, cache[mesh.mesh])
+						if cache is not None and cache_id in cache:
+							blend_obj = bpy.data.objects.new(mesh_name, cache[cache_id])
 							blend_obj.parent = prefab_obj
 							bpy.context.view_layer.active_layer_collection.collection.objects.link(blend_obj)
 						else:
-							print('loading', mesh.mesh)
+							LOG.info('loading mesh "%s"', mesh.mesh)
 							with open(mesh_path, 'rb') as f:
 								mesh_obj = import_mesh(MeshFile(f), mesh_name, prefab_obj, materials)
 								if cache is not None:
-									cache[mesh.mesh] = mesh_obj.data
+									cache[cache_id] = mesh_obj.data
 
 	if prefab.children and isinstance(prefab.children, RTTRObject):
 		for child in prefab.children.values():

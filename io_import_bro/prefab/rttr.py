@@ -4,7 +4,9 @@
 
 import json
 import os.path
+import logging
 
+LOG = logging.getLogger(f'{__name__}.rttr')
 
 class RTTRObject(dict):
 	def __getattr__(self, key): return self.get(key)
@@ -16,23 +18,23 @@ class RTTRObject(dict):
 			del self[key]
 
 
-def get_vfs_path(path, base_path):
-	if os.path.exists(path):
-		return path
+def get_vfs_path(vfs_path, base_path):
+	if os.path.exists(vfs_path):
+		return vfs_path
 
-	if path[0] == '/':
-		path = path[1:]
+	if vfs_path[0] == '/':
+		vfs_path = vfs_path[1:]
 
-	path = os.path.join(base_path, path)
-
-	return path
+	return os.path.join(base_path, vfs_path)
 
 
-def load_rttr(path, base_path):
-	path = get_vfs_path(path, base_path)
+def load_rttr(vfs_path, base_path):
+	path = get_vfs_path(vfs_path, base_path)
 
 	if not os.path.exists(path):
+		LOG.error('rttr object "%s" does not exist', vfs_path)
 		return RTTRObject()
 
+	LOG.info('loading rttr object "%s"', vfs_path)
 	with open(path, 'r') as file:
 		return json.load(file, object_hook=lambda d: RTTRObject(d))
