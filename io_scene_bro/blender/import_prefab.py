@@ -7,7 +7,7 @@ import math
 import os.path
 
 import bpy
-from mathutils import Vector
+from mathutils import Vector, Euler
 
 from .import_material import create_material
 from .import_mesh import import_mesh
@@ -138,11 +138,10 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 					 local_transform.scale.get("z", 1),
 					 local_transform.scale.get("y", 1)))
 			if isinstance(local_transform.rotation, RTTRObject):
-				prefab_obj.rotation_mode = 'XYZ'
-				prefab_obj.rotation_euler = Vector(
-					(math.radians(local_transform.rotation.get("x", 0)),
-					 math.radians(local_transform.rotation.get("z", 0)),
-					 math.radians(-local_transform.rotation.get("y", 0))))
+				prefab_obj.rotation_mode = 'YXZ'
+				prefab_obj.rotation_euler = Euler((math.radians(-local_transform.rotation.get("x", 0)),
+					 math.radians(-local_transform.rotation.get("z", 0)),
+					 math.radians(-local_transform.rotation.get("y", 0))), 'YXZ')
 
 		if isinstance(world_transform, RTTRObject) and len(world_transform) > 0:
 			assert False
