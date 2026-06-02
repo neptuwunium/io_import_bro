@@ -20,6 +20,8 @@ POINT_LIGHT_COMPONENT = 'PointLightComponent'
 TERRAIN_COMPONENT = 'TerrainComponent'
 
 
+def create_light(component: RTTRObject, data: bpy.types.Light) -> bool: pass
+
 def create_prefab(prefab: Optional[RTTRObject], game_path: str,
                   slots: Optional[dict[str, bpy.types.Object]] = None,
                   parent: Optional[bpy.types.Object] = None,

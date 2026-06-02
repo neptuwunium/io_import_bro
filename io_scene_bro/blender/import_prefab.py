@@ -30,16 +30,38 @@ SPOT_LIGHT_COMPONENT = 'SpotLightComponent'
 POINT_LIGHT_COMPONENT = 'PointLightComponent'
 TERRAIN_COMPONENT = 'TerrainComponent'
 
+EPSILON = 0.001
 
 def create_light(component, data):
+	disable_light = False
+
+	# this is "Sun and Planets"; actually way more complex than this
+	# but blender can only have one sun (with the "Sky Texture" world shader)
+	# this is also used to put celestial bodies in the sky, like the moon, which reflects light
+	# there likely is a way to horribly hack this into the world shader
 	if data.type == 'SUN':
+		data.energy = 10
 		if isinstance(component.color, RTTRObject):
 			data.color = (component.color.get('r', 0.0), component.color.get('g', 0.0), component.color.get('b', 0.0))
 		if isinstance(component.intensity, float):
-			data.energy = component.intensity
+			if component.intensity >= EPSILON:
+				data.energy = component.intensity
+			else:
+				disable_light = True
 		if isinstance(component.azimuth, float):
 			data.angle = component.azimuth
-		return
+		return disable_light
+
+	radius = 5
+	intensity = 2
+
+	if isinstance(component.radius, float):
+		radius = component.radius * 10
+		data.shadow_soft_size = radius
+	if data.type == 'AREA' and isinstance(component.lightSize, float):
+		data.shape = 'SQUARE'
+		radius = component.lightSize
+		data.size = radius
 
 	if isinstance(component.commonSettings, RTTRObject):
 		common = component.commonSettings
@@ -48,25 +70,20 @@ def create_light(component, data):
 			data.color = (common.color.get('r', 0.0), common.color.get('g', 0.0), common.color.get('b', 0.0))
 
 		if isinstance(common.intensity, float):
-			if isinstance(component.radius, float):
-				radius = component.radius
-			elif isinstance(component.lightSize, float):
-				radius = component.lightSize
+			if common.intensity >= EPSILON:
+				intensity = common.intensity
 			else:
-				radius = 5
+				disable_light = True
 
-			fpi2 = 4 * (math.pi * math.pi)
-			r2 = radius * radius
-			flux = fpi2 * r2 * common.intensity
-			data.energy = flux
+	fpi2 = 4 * (math.pi * math.pi)
+	r2 = radius * radius
+	flux = fpi2 * r2 * intensity
+	data.energy = flux
 
-	if isinstance(component.radius, float):
-		data.shadow_soft_size = component.radius
 	if data.type == 'SPOT' and isinstance(component.coneAngleDegrees, float):
 		data.spot_size = math.radians(component.coneAngleDegrees)
-	if data.type == 'AREA' and isinstance(component.lightSize, float):
-		data.shape = 'SQUARE'
-		data.size = component.lightSize
+
+	return disable_light
 
 
 def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
@@ -105,7 +122,9 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 				light_obj = bpy.data.objects.new(light_name, light_data)
 				light_obj.parent = prefab_obj
 				bpy.context.view_layer.active_layer_collection.collection.objects.link(light_obj)
-				create_light(light_comp, light_data)
+				if create_light(light_comp, light_data):
+					light_obj.hide_viewport = False
+					light_obj.hide_render = True
 
 		if isinstance(local_transform, RTTRObject):
 			if isinstance(local_transform.pos, RTTRObject):
@@ -138,9 +157,9 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 				create_prefab(load_prefab(state.handle, game_path), game_path, slots, state_prefab_obj, cache)
 
 		if isinstance(model, RTTRObject) and isinstance(model.meshes, list) and model.meshes:
-			clutter_density = float(model.get("clutterDensity", 0.000))  # todo: procedural clutter
+			clutter_density = float(model.get("clutterDensity", 0))  # todo: procedural clutter
 
-			if abs(clutter_density) < 0.001:
+			if abs(clutter_density) < EPSILON:
 				mesh = model.meshes[0]
 
 				if isinstance(mesh, RTTRObject) and isinstance(mesh.mesh, str):
