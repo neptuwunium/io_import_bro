@@ -7,4 +7,5 @@ import bpy
 from ..format.skel import SkelFile
 
 
-def create_skeleton(skel: SkelFile, root: bpy.types.Object) -> tuple[bpy.types.Object, str]: pass
+def _create_icosphere(name: str) -> bpy.types.Mesh: pass
+def create_skeleton(skel: SkelFile, root: bpy.types.Object) -> bpy.types.Object: pass

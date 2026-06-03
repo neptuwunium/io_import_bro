@@ -8,20 +8,17 @@ import time
 from typing import Self
 
 import bpy
-# noinspection PyUnresolvedReferences
 from bpy.props import StringProperty, CollectionProperty
 # noinspection PyUnresolvedReferences
 from bpy.types import Operator, Context, Property, OperatorFileListElement, ImagePreview, TOPBAR_MT_file_import
-# noinspection PyUnresolvedReferences
 from bpy.utils.previews import ImagePreviewCollection
-# noinspection PyUnresolvedReferences
 from bpy_extras.io_utils import ImportHelper
-# noinspection PyUnresolvedReferences
 import bpy.utils.previews
 
 from .. import __package__ as __base_package__
 from ..format.mesh import MeshFile
 from ..format.skel import SkelFile
+from ..format.anim import AnimFile
 from ..prefab import rttr
 from ..prefab.loader import load_prefab
 from ..prefab.material import load_material
@@ -30,6 +27,7 @@ from .import_material import create_material
 from .import_mesh import create_mesh
 from .import_prefab import create_prefab
 from .import_skel import create_skeleton
+from .import_anim import create_animation
 
 _bro_image_collection: ImagePreviewCollection | None = None
 
@@ -149,6 +147,25 @@ class SkelOperator(_ImportTemplate):
 			name = os.path.splitext(os.path.basename(path))[0]
 			blend_obj = bpy.data.objects.new(name, None)
 			create_skeleton(SkelFile(file), blend_obj)
+
+
+# noinspection PyTypeHints
+class AnimOperator(_ImportTemplate):
+	bl_idname = f'{__base_package__}.broengine_anim'
+	bl_label = 'Import Bro Engine Skeleton Animation'
+
+	filter_glob: StringProperty(default='*.anim', options={'HIDDEN'})
+
+	def load(self, path):
+		with open(path, 'rb') as file:
+			anim_file = AnimFile(file)
+			if bpy.context.selected_objects:
+				armature_obj = bpy.context.selected_objects[0]
+			else:
+				name = os.path.splitext(os.path.basename(path))[0]
+				skel_obj = bpy.data.objects.new(name, None)
+				armature_obj = create_skeleton(anim_file.skeleton, skel_obj)
+			create_animation(anim_file, armature_obj)
 
 
 # noinspection PyTypeHints
@@ -552,6 +569,7 @@ class BroMenu(bpy.types.Menu):
 	def draw(self, _):
 		self.layout.operator(MeshOperator.bl_idname, text='Mesh (.mesh)')
 		self.layout.operator(SkelOperator.bl_idname, text='Skeleton (.skel)')
+		self.layout.operator(AnimOperator.bl_idname, text='Animation (.anim)')
 		self.layout.operator(SceneOperator.bl_idname, text='Scene (.prefab; .world)')
 		self.layout.operator(MaterialOperator.bl_idname, text='Material (.material)')
 		self.layout.menu(BroSpecMenu.bl_idname, text=BroSpecMenu.bl_label)
@@ -568,6 +586,7 @@ def register():
 
 	bpy.utils.register_class(MeshOperator)
 	bpy.utils.register_class(SkelOperator)
+	bpy.utils.register_class(AnimOperator)
 	bpy.utils.register_class(SceneOperator)
 	bpy.utils.register_class(MaterialOperator)
 	bpy.utils.register_class(VehicleRegistryOperator)
@@ -587,6 +606,7 @@ def unregister():
 
 	bpy.utils.unregister_class(MeshOperator)
 	bpy.utils.unregister_class(SkelOperator)
+	bpy.utils.unregister_class(AnimOperator)
 	bpy.utils.unregister_class(SceneOperator)
 	bpy.utils.unregister_class(MaterialOperator)
 	bpy.utils.unregister_class(VehicleRegistryOperator)

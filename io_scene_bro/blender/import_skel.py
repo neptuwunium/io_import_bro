@@ -2,8 +2,12 @@
 #
 # SPDX-License-Identifier: EUPL-1.2
 
+import math
+
 import bpy
 from mathutils import Matrix, Vector
+
+from .. import __package__ as __base_package__
 
 C = Matrix((
 	(1.0, 0.0, 0.0, 0.0),
@@ -12,7 +16,34 @@ C = Matrix((
 	(0.0, 0.0, 0.0, 1.0)
 ))
 
-MIN_BONE_LENGTH = 0.05
+MIN_BONE_LENGTH = 0.01
+ICOSPHERE_SCALE = 0.1
+
+def _create_icosphere(name=f"{__base_package__}.skeleton_shape"):
+	if name in bpy.data.objects:
+		return bpy.data.objects[name]
+
+	phi = (1.0 + math.sqrt(5.0)) / 2.0
+
+	vertices = [
+		(-1, phi, 0), (1, phi, 0), (-1, -phi, 0), (1, -phi, 0),
+		(0, -1, phi), (0, 1, phi), (0, -1, -phi), (0, 1, -phi),
+		(phi, 0, -1), (phi, 0, 1), (-phi, 0, -1), (-phi, 0, 1)
+	]
+
+	vertices = [Vector(v).normalized() * ICOSPHERE_SCALE for v in vertices]
+
+	faces = [
+		(0, 11, 5), (0, 5, 1), (0, 1, 7), (0, 7, 10), (0, 10, 11),
+		(1, 5, 9), (5, 11, 4), (11, 10, 2), (10, 7, 6), (7, 1, 8),
+		(3, 9, 4), (3, 4, 2), (3, 2, 6), (3, 6, 8), (3, 8, 9),
+		(9, 8, 1), (4, 9, 5), (2, 4, 11), (6, 2, 10), (8, 6, 7)
+	]
+
+	mesh = bpy.data.meshes.new(name=name)
+	mesh.from_pydata(vertices, [], faces)
+	mesh.update()
+	return bpy.data.objects.new(name, mesh)
 
 
 def create_skeleton(skel, root):
@@ -27,7 +58,8 @@ def create_skeleton(skel, root):
 	bpy.ops.object.mode_set(mode='EDIT')
 
 	bones = []
-	for name, matrix, parent_index, children in zip(skel.names, skel.matrices, skel.hierarchy, skel.children):
+	skel_values = zip(skel.names, skel.matrices, skel.hierarchy, skel.children)
+	for name, matrix, parent_index, children in skel_values:
 		edit_bone = armature.edit_bones.new(name)
 
 		bones.append(edit_bone.name)
@@ -35,28 +67,20 @@ def create_skeleton(skel, root):
 		# noinspection PyTypeChecker
 		blender_matrix: Matrix = C @ matrix @ C
 
-		edit_bone.head = blender_matrix.to_translation()
-
-		if len(children) == 1:
-			# noinspection PyTypeChecker
-			child_blender_matrix: Matrix = C @ skel.matrices[children[0]] @ C
-			edit_bone.tail = child_blender_matrix.to_translation()
-		else:
-			edit_bone.tail = edit_bone.head + (blender_matrix.to_3x3() @ Vector((0, 1, 0))) * MIN_BONE_LENGTH
-
-		if (edit_bone.tail - edit_bone.head).length < MIN_BONE_LENGTH:
-			local_y_dir = blender_matrix.to_3x3() @ Vector((0, 1, 0))
-			edit_bone.tail = edit_bone.head + (local_y_dir * MIN_BONE_LENGTH)
-
 		edit_bone.matrix = blender_matrix
+		edit_bone.length = MIN_BONE_LENGTH
 
 		if parent_index != 0xffff:
 			edit_bone.parent = armature.edit_bones[bones[parent_index]]
 
 	bpy.ops.object.mode_set(mode='OBJECT')
-	blend_obj["bro_brones"] = bones
 
-	return blend_obj, bones
+	shape = _create_icosphere()
+
+	for pose_bone in blend_obj.pose.bones:
+		pose_bone.custom_shape = shape
+
+	return blend_obj
 
 
 if __name__ == '__main__':
