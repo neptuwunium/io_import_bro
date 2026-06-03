@@ -51,7 +51,7 @@ class SkelFile:
 
 			matrix_index = index * 16
 			bone_matrix = matrix_data[matrix_index:matrix_index + 16]
-			self.matrices.append(Matrix([bone_matrix[i:i + 4] for i in range(0, 16, 4)]).transposed())
+			self.matrices.append(Matrix([bone_matrix[i:i + 4] for i in range(0, 16, 4)]))
 
 
 if __name__ == '__main__':

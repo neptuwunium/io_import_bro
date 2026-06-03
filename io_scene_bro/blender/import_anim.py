@@ -12,6 +12,7 @@ C = Matrix((
 	(0.0, 0.0, 0.0, 1.0)
 ))
 
+
 def create_animation(anim, root):
 	bpy.context.view_layer.objects.active = root
 	bpy.ops.object.mode_set(mode='POSE')
@@ -24,28 +25,80 @@ def create_animation(anim, root):
 
 	action = bpy.data.actions.new(name="ImportedAnimation")
 	root.animation_data.action = action
-	skel = anim.skeleton
+
+	bone_map = [root.pose.bones.get(name) for name in anim.skeleton.names]
+
+	bro_source_matrix = [rna.to_list() for rna in root.data['bro_source_matrix']]
+	bro_source_matrix = [Matrix([matrix[i:i+4] for i in range(0, 16, 4)]) for matrix in bro_source_matrix]
+
+	global_bind_pose = []
+	for m in bro_source_matrix:
+		# noinspection PyTypeChecker
+		global_bind_pose.append(C @ m @ C)
+
+	previous_quats = {}
 
 	for frame_index in range(anim.header.frame_count):
-		for bone_index, track in enumerate(anim.bones):
+		bpy.context.scene.frame_set(frame_index)
+
+		global_anim_pose = []
+		for index, track in enumerate(anim.bones):
 			pos = track.position[frame_index] if not track.position_is_const else track.position[0]
 			rot = track.rotation[frame_index] if not track.rotation_is_const else track.rotation[0]
 			scale = track.scale[frame_index] if not track.scale_is_const else track.scale[0]
 
 			# noinspection PyTypeChecker
-			anim_loc = Matrix.Translation(Vector(pos))
-			anim_quat = Quaternion(rot)
-			anim_quat.conjugate()
-			anim_rot = anim_quat.to_matrix().to_4x4()
-			anim_scale = Matrix.Scale(scale, 4)
+			anim_matrix = C @ Matrix.LocRotScale(Vector(pos), Quaternion(rot), Vector((scale, scale, scale))) @ C
 
-			# noinspection PyTypeChecker
-			local_mat = anim_loc @ anim_rot @ anim_scale
-			blender_mat = C @ local_mat @ C
+			parent_index = anim.skeleton.hierarchy[index]
+			if parent_index != 0xffff:
+				global_anim_pose.append(global_anim_pose[parent_index] @ anim_matrix)
+			else:
+				global_anim_pose.append(anim_matrix)
 
-			# this is borked
-			pose_bone = root.pose.bones[skel.names[bone_index]]
-			pose_bone.matrix = blender_mat
+		target_pose = {}
+		for index, track in enumerate(anim.bones):
+			pose_bone = bone_map[index]
+			if not pose_bone:
+				continue
+
+			delta_global = global_anim_pose[index] @ global_bind_pose[index].inverted()
+			target_pose[pose_bone.name] = delta_global @ pose_bone.bone.matrix_local
+
+		for index, track in enumerate(anim.bones):
+			pose_bone = bone_map[index]
+			if not pose_bone:
+				continue
+
+			pose_bone_mesh = target_pose[pose_bone.name]
+			mesh_rest = pose_bone.bone.matrix_local
+
+			if pose_bone.parent:
+				parent_mesh_rest = pose_bone.parent.bone.matrix_local
+
+				if pose_bone.parent.name in target_pose:
+					parent_pose_bone = target_pose[pose_bone.parent.name]
+				else:
+					parent_pose_bone = parent_mesh_rest
+
+				basis = mesh_rest.inverted() @ parent_mesh_rest @ parent_pose_bone.inverted() @ pose_bone_mesh
+			else:
+				basis = mesh_rest.inverted() @ pose_bone_mesh
+
+			loc, rot, scale = basis.decompose()
+
+			if pose_bone.name in previous_quats:
+				if rot.dot(previous_quats[pose_bone.name]) < 0:
+					rot.negate()
+			previous_quats[pose_bone.name] = rot.copy()
+
+			pose_bone.rotation_quaternion = rot
+			pose_bone.scale = scale
+
+			if not pose_bone.parent:
+				pose_bone.location = loc
+			else:
+				pose_bone.location = (0, 0, 0)
 
 			if not track.position_is_const or frame_index == 0:
 				pose_bone.keyframe_insert(data_path="location", frame=frame_index)
@@ -53,6 +106,8 @@ def create_animation(anim, root):
 				pose_bone.keyframe_insert(data_path="rotation_quaternion", frame=frame_index)
 			if not track.scale_is_const or frame_index == 0:
 				pose_bone.keyframe_insert(data_path="scale", frame=frame_index)
+
+	bpy.context.scene.frame_set(0)
 	bpy.ops.object.mode_set(mode='OBJECT')
 
 if __name__ == '__main__':

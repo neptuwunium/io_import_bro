@@ -48,6 +48,8 @@ def _create_icosphere(name=f"{__base_package__}.skeleton_shape"):
 
 def create_skeleton(skel, root):
 	armature = bpy.data.armatures.new(root.name)
+	armature['bro_source_matrix'] =  skel.matrices.copy()
+
 	blend_obj = bpy.data.objects.new(root.name, armature)
 	blend_obj.parent = root.parent
 	root.parent = blend_obj
@@ -57,21 +59,16 @@ def create_skeleton(skel, root):
 	blend_obj.select_set(True)
 	bpy.ops.object.mode_set(mode='EDIT')
 
-	bones = []
 	skel_values = zip(skel.names, skel.matrices, skel.hierarchy, skel.children)
 	for name, matrix, parent_index, children in skel_values:
 		edit_bone = armature.edit_bones.new(name)
 
-		bones.append(edit_bone.name)
-
 		# noinspection PyTypeChecker
-		blender_matrix: Matrix = C @ matrix @ C
-
-		edit_bone.matrix = blender_matrix
+		edit_bone.matrix = C @ matrix.transposed() @ C
 		edit_bone.length = MIN_BONE_LENGTH
 
 		if parent_index != 0xffff:
-			edit_bone.parent = armature.edit_bones[bones[parent_index]]
+			edit_bone.parent = armature.edit_bones[skel.names[parent_index]]
 
 	bpy.ops.object.mode_set(mode='OBJECT')
 
