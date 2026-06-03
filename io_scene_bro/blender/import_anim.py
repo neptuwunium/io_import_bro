@@ -5,6 +5,8 @@
 import bpy
 from mathutils import Matrix, Vector, Quaternion
 
+from .import_skel import ARMATURE_DATA_KEY
+
 C = Matrix((
 	(1.0, 0.0, 0.0, 0.0),
 	(0.0, 0.0, 1.0, 0.0),
@@ -14,6 +16,9 @@ C = Matrix((
 
 
 def create_animation(anim, anim_name, root):
+	if not ARMATURE_DATA_KEY in root.data:
+		return
+
 	bpy.context.view_layer.objects.active = root
 	bpy.ops.object.mode_set(mode='POSE')
 
@@ -28,7 +33,7 @@ def create_animation(anim, anim_name, root):
 
 	bone_map = [root.pose.bones.get(name) for name in anim.skeleton.names]
 
-	bro_source_matrix = [rna.to_list() for rna in root.data['bro_source_matrix']]
+	bro_source_matrix = [rna.to_list() for rna in root.data[ARMATURE_DATA_KEY]]
 	bro_source_matrix = [Matrix([matrix[i:i + 4] for i in range(0, 16, 4)]) for matrix in bro_source_matrix]
 
 	global_bind_pose = []
@@ -97,11 +102,11 @@ def create_animation(anim, anim_name, root):
 			pose_bone.scale = scale
 
 			if not track.position_is_const or frame_index == 0:
-				pose_bone.keyframe_insert(data_path="location", frame=frame_index)
+				pose_bone.keyframe_insert(data_path='location', frame=frame_index)
 			if not track.rotation_is_const or frame_index == 0:
-				pose_bone.keyframe_insert(data_path="rotation_quaternion", frame=frame_index)
+				pose_bone.keyframe_insert(data_path='rotation_quaternion', frame=frame_index)
 			if not track.scale_is_const or frame_index == 0:
-				pose_bone.keyframe_insert(data_path="scale", frame=frame_index)
+				pose_bone.keyframe_insert(data_path='scale', frame=frame_index)
 
 	bpy.context.scene.frame_set(0)
 	bpy.ops.object.mode_set(mode='OBJECT')

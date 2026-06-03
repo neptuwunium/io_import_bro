@@ -7,16 +7,20 @@ import os.path
 
 import bpy
 
+from .. import __package__ as __base_package__
 from ..prefab.rttr import get_vfs_path
 
-LOG = logging.getLogger(f'{__name__}.material')
+LOG = logging.getLogger(__name__)
 SPACING = 25
+
+MATERIAL_DATA_KEY = f'{__base_package__}.material_id'
+NODE_DATA_KEY = f'{__base_package__}.property_target'
 
 
 def load_image(texture_path, root_path):
 	path = get_vfs_path(texture_path, root_path)
 	if not os.path.exists(path):
-		path = path + ".dds"
+		path = path + '.dds'
 	if not os.path.exists(path):
 		return None
 
@@ -41,6 +45,7 @@ def create_material(material, name, root_path):
 	node_tree = blend_material.node_tree
 
 	group_name = os.path.splitext(os.path.basename(material.effect))[0]
+	blend_material[MATERIAL_DATA_KEY] = group_name
 
 	while node_tree.nodes:
 		node_tree.nodes.remove(node_tree.nodes[0])
@@ -68,6 +73,7 @@ def create_material(material, name, root_path):
 	for name, texture in material.properties.textures.items():
 		alpha_node_name = name + ' Alpha'
 		node = node_tree.nodes.new('ShaderNodeTexImage')
+		node[NODE_DATA_KEY] = name
 		node.image = load_image(texture, root_path)
 		node.location = x - 100, y
 		node.label = node.name = name
@@ -86,6 +92,7 @@ def create_material(material, name, root_path):
 
 	for name, value in material.properties.floats.items():
 		node = node_tree.nodes.new('ShaderNodeValue')
+		node[NODE_DATA_KEY] = name
 		node.location = x, y
 		node.outputs[0].default_value = value
 		node.label = node.name = name
@@ -97,6 +104,7 @@ def create_material(material, name, root_path):
 
 	for name, value in material.properties.integers.items():
 		node = node_tree.nodes.new('ShaderNodeValue')
+		node[NODE_DATA_KEY] = name
 		node.location = x, y
 		node.outputs[0].default_value = float(value)
 		node.label = node.name = name
@@ -108,6 +116,7 @@ def create_material(material, name, root_path):
 
 	for name, value in material.properties.bools.items():
 		node = node_tree.nodes.new('ShaderNodeValue')
+		node[NODE_DATA_KEY] = name
 		node.location = x, y
 		node.outputs[0].default_value = 1.0 if value else 0
 		node.label = node.name = name
@@ -124,6 +133,7 @@ def create_material(material, name, root_path):
 	for name, value in material.properties.colors.items():
 		alpha_node_name = name + ' Alpha'
 		node = node_tree.nodes.new('FunctionNodeInputVector')
+		node[NODE_DATA_KEY] = name
 		node.location = x, y
 		node.vector = value.xyz
 		node.label = node.name = name
@@ -132,6 +142,7 @@ def create_material(material, name, root_path):
 		y -= int(node.height - 10 + SPACING)
 
 		node = node_tree.nodes.new('ShaderNodeValue')
+		node[NODE_DATA_KEY] = alpha_node_name
 		node.location = x, y
 		node.outputs[0].default_value = value.w
 		node.label = node.name = alpha_node_name

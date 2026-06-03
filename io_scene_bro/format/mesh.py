@@ -21,12 +21,12 @@ class MeshFile:
 
 		self.submeshes = []
 		for index in range(header.submesh_count):
-			name_length = struct.unpack("<I", stream.read(4))[0]
-			name = stream.read(name_length).decode("utf-8")
+			name_length = struct.unpack('<I', stream.read(4))[0]
+			name = stream.read(name_length).decode('utf-8')
 			submesh_header = SubmeshHeader.from_buffer_copy(stream.read(sizeof(SubmeshHeader)))
 			self.submeshes.append((name, submesh_header))
 
-		vertex_count = struct.unpack("<I", stream.read(4))[0]
+		vertex_count = struct.unpack('<I', stream.read(4))[0]
 
 		position_type = stream.read(1)[0]
 		if position_type == 0:
@@ -42,7 +42,7 @@ class MeshFile:
 		self.tangents = MeshFile._decompress_normal(stream, vertex_count)[:, [0, 2, 1]]
 		self.normals = MeshFile._decompress_normal(stream, vertex_count)[:, [0, 2, 1]]
 
-		uv_count = struct.unpack("<I", stream.read(4))[0]
+		uv_count = struct.unpack('<I', stream.read(4))[0]
 		assert uv_count <= 3
 
 		self.uv_layers = []
@@ -65,7 +65,7 @@ class MeshFile:
 		else:
 			assert False
 
-		index_buffer_size = struct.unpack("<I", stream.read(4))[0]
+		index_buffer_size = struct.unpack('<I', stream.read(4))[0]
 		index_buffer = stream.read(index_buffer_size * 4)
 		index_dtype = np.uint32 if vertex_count > 0xffff else np.uint16
 		if vertex_count < 0xffff and index_buffer_size % 3 == 2:
@@ -85,7 +85,7 @@ class MeshFile:
 				# blend_weights = 16-bits for index, 16 bits for weight (float16)
 				#
 				# cursed, but this is actually easier to import into blender
-				weight_count = struct.unpack("<I", stream.read(4))[0]
+				weight_count = struct.unpack('<I', stream.read(4))[0]
 				assert weight_count <= 0xffffff
 				self.blend_weights = np.frombuffer(stream.read(weight_count * 4), dtype=np.dtype([
 					('weight', np.float16),

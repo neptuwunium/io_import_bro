@@ -16,7 +16,7 @@ from ..prefab.loader import load_prefab
 from ..prefab.material import load_material
 from ..prefab.rttr import RTTRObject, get_vfs_path
 
-LOG = logging.getLogger(f'{__name__}.import_prefab')
+LOG = logging.getLogger(__name__)
 
 LOCAL_TRANSFORM_COMPONENT = 'engine::LocalTransformComponent'
 WORLD_TRANSFORM_COMPONENT = 'engine::WorldTransformComponent'
@@ -130,19 +130,19 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 		if isinstance(local_transform, RTTRObject):
 			if isinstance(local_transform.pos, RTTRObject):
 				prefab_obj.location = Vector(
-					(local_transform.pos.get("x", 0),
-					 local_transform.pos.get("z", 0),
-					 local_transform.pos.get("y", 0)))
+					(local_transform.pos.get('x', 0),
+					 local_transform.pos.get('z', 0),
+					 local_transform.pos.get('y', 0)))
 			if isinstance(local_transform.scale, RTTRObject):
 				prefab_obj.scale = Vector(
-					(local_transform.scale.get("x", 1),
-					 local_transform.scale.get("z", 1),
-					 local_transform.scale.get("y", 1)))
+					(local_transform.scale.get('x', 1),
+					 local_transform.scale.get('z', 1),
+					 local_transform.scale.get('y', 1)))
 			if isinstance(local_transform.rotation, RTTRObject):
 				prefab_obj.rotation_mode = 'YXZ'
-				prefab_obj.rotation_euler = Euler((math.radians(-local_transform.rotation.get("x", 0)),
-				                                   math.radians(-local_transform.rotation.get("z", 0)),
-				                                   math.radians(-local_transform.rotation.get("y", 0))), 'YXZ')
+				prefab_obj.rotation_euler = Euler((math.radians(-local_transform.rotation.get('x', 0)),
+				                                   math.radians(-local_transform.rotation.get('z', 0)),
+				                                   math.radians(-local_transform.rotation.get('y', 0))), 'YXZ')
 
 		if isinstance(world_transform, RTTRObject) and len(world_transform) > 0:
 			assert False
@@ -157,7 +157,7 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 				create_prefab(load_prefab(state.handle, game_path), game_path, slots, state_prefab_obj, cache)
 
 		if isinstance(model, RTTRObject) and isinstance(model.meshes, list) and model.meshes:
-			clutter_density = float(model.get("clutterDensity", 0))  # todo: procedural clutter
+			clutter_density = float(model.get('clutterDensity', 0))  # todo: procedural clutter
 
 			if abs(clutter_density) < EPSILON:
 				mesh = model.meshes[0]
@@ -177,7 +177,7 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 								material = load_material(material_path, game_path, cache)
 								materials[material_name] = create_material(material, material_name, game_path)
 								if cache is not None:
-									cache_id += f"[{material_name}::{material.hash_id}]"
+									cache_id += f'[{material_name}::{material.hash_id}]'
 
 						mesh_name = f'{prefab.name}::{mesh_name}'
 						if cache is not None and cache_id in cache:

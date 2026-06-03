@@ -40,8 +40,8 @@ class RTTRMaterial:
 			self._parse_properties(rttr.get('properties', []))
 
 			for texture in rttr.get('textures', []):
-				if not texture["texture"] or not texture["name"]: continue
-				self.properties.textures[texture["name"]] = texture["texture"]
+				if not texture['texture'] or not texture['name']: continue
+				self.properties.textures[texture['name']] = texture['texture']
 
 	@property
 	def hash_id(self):
@@ -88,22 +88,22 @@ class RTTRMaterial:
 
 	def _parse_properties(self, properties):
 		for prop in properties:
-			if not prop["value"] or not prop["name"]: continue
-			value = prop["value"]
+			if not prop['value'] or not prop['name']: continue
+			value = prop['value']
 			match value.get('__type__'):
-				case "engine::render::Material::Snapshot::PropertyArray":
-					array_properties = value.get("properties", [])
+				case 'engine::render::Material::Snapshot::PropertyArray':
+					array_properties = value.get('properties', [])
 					self._parse_properties(array_properties)
-				case "eastl::vector32<engine::render::Material::Snapshot::Property,eastl::allocator>":
-					internal_properties = value.get("__value__", [])
+				case 'eastl::vector32<engine::render::Material::Snapshot::Property,eastl::allocator>':
+					internal_properties = value.get('__value__', [])
 					self._parse_properties(internal_properties)
-				case "math::matrix":
-					m = value.get("M", [])
+				case 'math::matrix':
+					m = value.get('M', [])
 					m1 = m.get(0, {})
 					m2 = m.get(1, {})
 					m3 = m.get(2, {})
 					m4 = m.get(3, {})
-					self.properties.matrices[prop["name"]] = Matrix(
+					self.properties.matrices[prop['name']] = Matrix(
 						((m1.get('x', 1),
 						  m1.get('y', 0),
 						  m1.get('z', 0),
@@ -121,35 +121,35 @@ class RTTRMaterial:
 						  m4.get('z', 0),
 						  m4.get('w', 1))),
 					)
-				case "math::vec4":
-					self.properties.colors[prop["name"]] = Vector(
+				case 'math::vec4':
+					self.properties.colors[prop['name']] = Vector(
 						(value.get('x', 0),
 						 value.get('y', 0),
 						 value.get('z', 0),
 						 value.get('w', 1))
 					)
-				case "math::vec3":
-					self.properties.colors[prop["name"]] = Vector(
+				case 'math::vec3':
+					self.properties.colors[prop['name']] = Vector(
 						(value.get('x', 0),
 						 value.get('y', 0),
 						 value.get('z', 0),
 						 1)
 					)
-				case "math::vec2":
-					self.properties.colors[prop["name"]] = Vector(
+				case 'math::vec2':
+					self.properties.colors[prop['name']] = Vector(
 						(value.get('x', 0),
 						 value.get('y', 0),
 						 0,
 						 1)
 					)
-				case "bool":
-					self.properties.bools[prop["name"]] = bool(value.get('__value__', False))
-				case "float":
-					self.properties.floats[prop["name"]] = float(value.get('__value__', 0.0))
-				case "int32":
-					self.properties.integers[prop["name"]] = int(value.get('__value__', 0))
-				case "engine::InternedString":
-					self.properties.textures[prop["name"]] = str(value.get('__value__', ''))
+				case 'bool':
+					self.properties.bools[prop['name']] = bool(value.get('__value__', False))
+				case 'float':
+					self.properties.floats[prop['name']] = float(value.get('__value__', 0.0))
+				case 'int32':
+					self.properties.integers[prop['name']] = int(value.get('__value__', 0))
+				case 'engine::InternedString':
+					self.properties.textures[prop['name']] = str(value.get('__value__', ''))
 
 
 def load_material(material_path, base_path, cache=None):
@@ -179,4 +179,4 @@ if __name__ == '__main__':
 	import json
 
 	root_material = load_material(sys.argv[-1], sys.argv[-2])
-	print(json.dumps(root_material, indent="\t"))
+	print(json.dumps(root_material, indent='\t'))

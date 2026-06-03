@@ -66,11 +66,11 @@ def load_prefab(prefab_path, base_path, inherited_overrides=None, prefab_cache=N
 		return RTTRObject()
 
 	if prefab_path.endswith('.prefab'):
-		if not prefab_path.endswith(".client.prefab"):
-			prefab_path = prefab_path[:-len(".prefab")] + ".client.prefab"
+		if not prefab_path.endswith('.client.prefab'):
+			prefab_path = prefab_path[:-len('.prefab')] + '.client.prefab'
 	elif prefab_path.endswith('.world'):
-		if not prefab_path.endswith(".client.world"):
-			prefab_path = prefab_path[:-len(".world")] + ".client.world"
+		if not prefab_path.endswith('.client.world'):
+			prefab_path = prefab_path[:-len('.world')] + '.client.world'
 
 	if prefab_cache is None:
 		prefab_cache = {}
@@ -163,4 +163,4 @@ if __name__ == '__main__':
 	import json
 
 	root_entity = load_prefab(sys.argv[-1], sys.argv[-2])
-	print(json.dumps(root_entity, indent="\t"))
+	print(json.dumps(root_entity, indent='\t'))

@@ -6,7 +6,7 @@ import json
 import logging
 import os.path
 
-LOG = logging.getLogger(f'{__name__}.rttr')
+LOG = logging.getLogger(__name__)
 
 
 class RTTRObject(dict):
