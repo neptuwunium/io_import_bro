@@ -569,7 +569,7 @@ class BroMenu(bpy.types.Menu):
 	def draw(self, _):
 		self.layout.operator(MeshOperator.bl_idname, text='Mesh (.mesh)')
 		self.layout.operator(SkelOperator.bl_idname, text='Skeleton (.skel)')
-		self.layout.operator(AnimOperator.bl_idname, text='Animation (.anim)')
+		# self.layout.operator(AnimOperator.bl_idname, text='Animation (.anim)')
 		self.layout.operator(SceneOperator.bl_idname, text='Scene (.prefab; .world)')
 		self.layout.operator(MaterialOperator.bl_idname, text='Material (.material)')
 		self.layout.menu(BroSpecMenu.bl_idname, text=BroSpecMenu.bl_label)
@@ -586,7 +586,7 @@ def register():
 
 	bpy.utils.register_class(MeshOperator)
 	bpy.utils.register_class(SkelOperator)
-	bpy.utils.register_class(AnimOperator)
+	# bpy.utils.register_class(AnimOperator)
 	bpy.utils.register_class(SceneOperator)
 	bpy.utils.register_class(MaterialOperator)
 	bpy.utils.register_class(VehicleRegistryOperator)
@@ -606,7 +606,7 @@ def unregister():
 
 	bpy.utils.unregister_class(MeshOperator)
 	bpy.utils.unregister_class(SkelOperator)
-	bpy.utils.unregister_class(AnimOperator)
+	# bpy.utils.unregister_class(AnimOperator)
 	bpy.utils.unregister_class(SceneOperator)
 	bpy.utils.unregister_class(MaterialOperator)
 	bpy.utils.unregister_class(VehicleRegistryOperator)
