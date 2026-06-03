@@ -92,13 +92,9 @@ def create_animation(anim, anim_name, root):
 					rot.negate()
 			previous_quats[pose_bone.name] = rot.copy()
 
+			pose_bone.location = loc
 			pose_bone.rotation_quaternion = rot
 			pose_bone.scale = scale
-
-			if not pose_bone.parent:
-				pose_bone.location = loc
-			else:
-				pose_bone.location = (0, 0, 0)
 
 			if not track.position_is_const or frame_index == 0:
 				pose_bone.keyframe_insert(data_path="location", frame=frame_index)
