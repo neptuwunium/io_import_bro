@@ -10,6 +10,7 @@ import numpy as np
 from .skel import SkelFile
 from .structs.anim_struct import *
 
+
 class AnimTrack:
 	def __init__(self, stream, frame_count):
 		self.rotation_is_const = stream.read(1)[0] == 1
@@ -25,6 +26,7 @@ class AnimTrack:
 		scale_data = stream.read((1 if self.scale_is_const else frame_count) * 4)
 		# noinspection PyTypeChecker
 		self.scale = np.frombuffer(scale_data, dtype=np.float32)
+
 
 class AnimFile:
 	def __init__(self, stream: IO[bytes]):

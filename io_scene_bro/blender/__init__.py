@@ -8,26 +8,26 @@ import time
 from typing import Self
 
 import bpy
+import bpy.utils.previews
 from bpy.props import StringProperty, CollectionProperty
 # noinspection PyUnresolvedReferences
 from bpy.types import Operator, Context, Property, OperatorFileListElement, ImagePreview, TOPBAR_MT_file_import
 from bpy.utils.previews import ImagePreviewCollection
 from bpy_extras.io_utils import ImportHelper
-import bpy.utils.previews
 
-from .. import __package__ as __base_package__
-from ..format.mesh import MeshFile
-from ..format.skel import SkelFile
-from ..format.anim import AnimFile
-from ..prefab import rttr
-from ..prefab.loader import load_prefab
-from ..prefab.material import load_material
-from ..prefab.rttr import RTTRObject
+from .import_anim import create_animation
 from .import_material import create_material
 from .import_mesh import create_mesh
 from .import_prefab import create_prefab
 from .import_skel import create_skeleton
-from .import_anim import create_animation
+from .. import __package__ as __base_package__
+from ..format.anim import AnimFile
+from ..format.mesh import MeshFile
+from ..format.skel import SkelFile
+from ..prefab import rttr
+from ..prefab.loader import load_prefab
+from ..prefab.material import load_material
+from ..prefab.rttr import RTTRObject
 
 _bro_image_collection: ImagePreviewCollection | None = None
 
@@ -159,13 +159,13 @@ class AnimOperator(_ImportTemplate):
 	def load(self, path):
 		with open(path, 'rb') as file:
 			anim_file = AnimFile(file)
+			name = os.path.splitext(os.path.basename(path))[0]
 			if bpy.context.selected_objects:
 				armature_obj = bpy.context.selected_objects[0]
 			else:
-				name = os.path.splitext(os.path.basename(path))[0]
 				skel_obj = bpy.data.objects.new(name, None)
 				armature_obj = create_skeleton(anim_file.skeleton, skel_obj)
-			create_animation(anim_file, armature_obj)
+			create_animation(anim_file, name, armature_obj)
 
 
 # noinspection PyTypeHints
@@ -197,6 +197,7 @@ class MaterialOperator(_VirtualImportTemplate):
 		game_path = AddonPreferences.instance().game_data_path
 		material = load_material(path, game_path)
 		create_material(material, os.path.splitext(os.path.basename(path))[0], game_path)
+
 
 class SpecOperator(Operator):
 	bl_options = {'REGISTER', 'UNDO'}

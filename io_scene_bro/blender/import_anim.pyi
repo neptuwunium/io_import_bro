@@ -7,4 +7,4 @@ import bpy
 from ..format.anim import AnimFile
 
 
-def create_animation(anim: AnimFile, root: bpy.types.Object): pass
+def create_animation(anim: AnimFile, anim_name: str, root: bpy.types.Object): pass

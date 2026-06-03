@@ -4,7 +4,6 @@
 
 from typing import IO
 
-from mathutils import Matrix
 import numpy as np
 from numpy.typing import NDArray
 
@@ -21,6 +20,7 @@ class AnimTrack:
 	scale_is_const: bool
 
 	def __init__(self, stream: IO[bytes], frame_count: int): pass
+
 
 class AnimFile:
 	header: AnimHeader

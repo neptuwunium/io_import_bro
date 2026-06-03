@@ -13,7 +13,7 @@ C = Matrix((
 ))
 
 
-def create_animation(anim, root):
+def create_animation(anim, anim_name, root):
 	bpy.context.view_layer.objects.active = root
 	bpy.ops.object.mode_set(mode='POSE')
 
@@ -23,13 +23,13 @@ def create_animation(anim, root):
 	if not root.animation_data:
 		root.animation_data_create()
 
-	action = bpy.data.actions.new(name="ImportedAnimation")
+	action = bpy.data.actions.new(name=anim_name)
 	root.animation_data.action = action
 
 	bone_map = [root.pose.bones.get(name) for name in anim.skeleton.names]
 
 	bro_source_matrix = [rna.to_list() for rna in root.data['bro_source_matrix']]
-	bro_source_matrix = [Matrix([matrix[i:i+4] for i in range(0, 16, 4)]) for matrix in bro_source_matrix]
+	bro_source_matrix = [Matrix([matrix[i:i + 4] for i in range(0, 16, 4)]) for matrix in bro_source_matrix]
 
 	global_bind_pose = []
 	for m in bro_source_matrix:
@@ -110,6 +110,7 @@ def create_animation(anim, root):
 	bpy.context.scene.frame_set(0)
 	bpy.ops.object.mode_set(mode='OBJECT')
 
+
 if __name__ == '__main__':
 	import sys
 	import os.path
@@ -117,7 +118,8 @@ if __name__ == '__main__':
 	from .import_skel import create_skeleton
 
 	with open(sys.argv[-1], 'rb') as f:
-		skel_obj = bpy.data.objects.new(os.path.splitext(os.path.basename(sys.argv[-1]))[0], None)
+		clip_name = os.path.splitext(os.path.basename(sys.argv[-1]))[0]
+		skel_obj = bpy.data.objects.new(clip_name, None)
 		anim_file = AnimFile(f)
 		armature_obj = create_skeleton(anim_file.skeleton, skel_obj)
-		create_animation(anim_file, armature_obj)
+		create_animation(anim_file, clip_name, armature_obj)

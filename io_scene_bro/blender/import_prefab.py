@@ -32,6 +32,7 @@ TERRAIN_COMPONENT = 'TerrainComponent'
 
 EPSILON = 0.001
 
+
 def create_light(component, data):
 	disable_light = False
 
@@ -140,8 +141,8 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 			if isinstance(local_transform.rotation, RTTRObject):
 				prefab_obj.rotation_mode = 'YXZ'
 				prefab_obj.rotation_euler = Euler((math.radians(-local_transform.rotation.get("x", 0)),
-					 math.radians(-local_transform.rotation.get("z", 0)),
-					 math.radians(-local_transform.rotation.get("y", 0))), 'YXZ')
+				                                   math.radians(-local_transform.rotation.get("z", 0)),
+				                                   math.radians(-local_transform.rotation.get("y", 0))), 'YXZ')
 
 		if isinstance(world_transform, RTTRObject) and len(world_transform) > 0:
 			assert False

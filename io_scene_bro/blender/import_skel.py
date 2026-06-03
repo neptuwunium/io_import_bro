@@ -19,6 +19,7 @@ C = Matrix((
 MIN_BONE_LENGTH = 0.01
 ICOSPHERE_SCALE = 0.1
 
+
 def _create_icosphere(name=f"{__base_package__}.skeleton_shape"):
 	if name in bpy.data.objects:
 		return bpy.data.objects[name]
@@ -48,7 +49,7 @@ def _create_icosphere(name=f"{__base_package__}.skeleton_shape"):
 
 def create_skeleton(skel, root):
 	armature = bpy.data.armatures.new(root.name)
-	armature['bro_source_matrix'] =  skel.matrices.copy()
+	armature['bro_source_matrix'] = skel.matrices.copy()
 
 	blend_obj = bpy.data.objects.new(root.name, armature)
 	blend_obj.parent = root.parent
