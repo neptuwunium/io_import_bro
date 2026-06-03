@@ -16,7 +16,7 @@ def create_material(name):
 	return bpy.data.materials.new(name=name)
 
 
-def import_mesh(mesh, name, parent=None, materials=None):
+def create_mesh(mesh, name, parent=None, materials=None):
 	mesh_data = bpy.data.meshes.new(name)
 	blend_obj = bpy.data.objects.new(name, mesh_data)
 	blend_obj.parent = parent
@@ -26,7 +26,8 @@ def import_mesh(mesh, name, parent=None, materials=None):
 		materials = {}
 
 	if mesh.skeleton:
-		(armature_obj, bones) = create_skeleton(mesh.skeleton, blend_obj)
+		armature_obj = create_skeleton(mesh.skeleton, blend_obj)
+		bones = mesh.skeleton.names
 	else:
 		armature_obj = None
 		bones = None
@@ -96,4 +97,4 @@ if __name__ == '__main__':
 	from ..format.mesh import MeshFile
 
 	with open(sys.argv[-1], 'rb') as f:
-		import_mesh(MeshFile(f), os.path.splitext(os.path.basename(sys.argv[-1]))[0])
+		create_mesh(MeshFile(f), os.path.splitext(os.path.basename(sys.argv[-1]))[0])

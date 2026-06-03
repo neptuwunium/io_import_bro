@@ -10,7 +10,7 @@ import bpy
 from mathutils import Vector, Euler
 
 from .import_material import create_material
-from .import_mesh import import_mesh
+from .import_mesh import create_mesh
 from ..format.mesh import MeshFile
 from ..prefab.loader import load_prefab
 from ..prefab.material import load_material
@@ -186,7 +186,7 @@ def create_prefab(prefab, game_path, slots=None, parent=None, cache=None):
 						else:
 							LOG.info('loading mesh "%s"', mesh.mesh)
 							with open(mesh_path, 'rb') as f:
-								mesh_obj = import_mesh(MeshFile(f), mesh_name, prefab_obj, materials)
+								mesh_obj = create_mesh(MeshFile(f), mesh_name, prefab_obj, materials)
 								if cache is not None:
 									cache[cache_id] = mesh_obj.data
 

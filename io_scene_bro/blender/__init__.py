@@ -27,7 +27,7 @@ from ..prefab.loader import load_prefab
 from ..prefab.material import load_material
 from ..prefab.rttr import RTTRObject
 from .import_material import create_material
-from .import_mesh import import_mesh
+from .import_mesh import create_mesh
 from .import_prefab import create_prefab
 from .import_skel import create_skeleton
 
@@ -134,7 +134,7 @@ class MeshOperator(_ImportTemplate):
 	def load(self, path):
 		with open(path, 'rb') as file:
 			name = os.path.splitext(os.path.basename(path))[0]
-			import_mesh(MeshFile(file), name)
+			create_mesh(MeshFile(file), name)
 
 
 # noinspection PyTypeHints

@@ -8,7 +8,7 @@ import bpy
 from ..format.mesh import MeshFile
 
 
-def import_mesh(mesh: MeshFile, name: str,
+def create_mesh(mesh: MeshFile, name: str,
                 parent: Optional[bpy.types.Object] = None,
                 materials: Optional[dict[str, bpy.types.Material]] = None) -> \
 		bpy.types.Object: pass
