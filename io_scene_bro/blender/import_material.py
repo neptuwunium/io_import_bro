@@ -91,6 +91,21 @@ def bind_materials(objs=None):
 			bind_material(material.material)
 
 
+def _create_default_tree(node_tree: bpy.types.ShaderNodeTree):
+	node_tree.interface.new_socket(name="Surface", in_out='OUTPUT', socket_type='NodeSocketShader')
+
+	group_input = node_tree.nodes.new(type='NodeGroupInput')
+	group_input.location = (-200, 0)
+
+	group_output = node_tree.nodes.new(type='NodeGroupOutput')
+	group_output.location = (400, 0)
+
+	principled_bsdf = node_tree.nodes.new(type='ShaderNodeBsdfPrincipled')
+	principled_bsdf.location = (100, 0)
+
+	node_tree.links.new(principled_bsdf.outputs['BSDF'], group_output.inputs['Surface'])
+
+
 def create_material(material, name, root_path):
 	name = f'{name}::{hex(material.hash_id)[2:]}'
 
@@ -119,11 +134,13 @@ def create_material(material, name, root_path):
 
 	if group_name in bpy.data.node_groups:
 		group_node.node_tree = bpy.data.node_groups[group_name]
-		if group_node.outputs:
-			node_tree.links.new(group_node.outputs[0], out_node.inputs[0])
 	else:
+		LOG.warning('unknown shader "%s" on material "%s", creating default', group_name, name)
 		group_node.node_tree = bpy.data.node_groups.new(group_name, type='ShaderNodeTree')
-		LOG.warning('unknown shader "%s" on material "%s"', group_name, name)
+		_create_default_tree(group_node.node_tree)
+
+	if group_node.outputs:
+		node_tree.links.new(group_node.outputs[0], out_node.inputs[0])
 
 	x = -int(group_node.width + SPACING)
 	y = 0
