@@ -19,7 +19,7 @@ from ...prefab.rttr import RTTRObject
 
 # noinspection PyTypeChecker
 class FrontmenRegistryOperator(_SpecOperator):
-	bl_idname = f'{__base_package__}.broengine_spec_frontmen'
+	bl_idname = f'{__base_package__}.spec_frontmen'
 	bl_label = 'Import HEAT Agent'
 	bl_text = 'Agent'
 	bl_header = 'Select a Agent'

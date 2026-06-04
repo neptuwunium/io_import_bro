@@ -17,7 +17,7 @@ from ...prefab.loader import load_prefab
 
 # noinspection PyTypeHints
 class SceneOperator(_VirtualImportTemplate):
-	bl_idname = f'{__base_package__}.broengine_scene'
+	bl_idname = f'{__base_package__}.import_scene'
 	bl_label = 'Import BroEngine Scene'
 	bl_description = 'Import a BroEngine Scene Prefab (.prefab, .world file)'
 

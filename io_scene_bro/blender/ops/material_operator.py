@@ -17,7 +17,7 @@ from ...prefab.material import load_material
 
 # noinspection PyTypeHints
 class MaterialOperator(_VirtualImportTemplate):
-	bl_idname = f'{__base_package__}.broengine_material'
+	bl_idname = f'{__base_package__}.import_material'
 	bl_label = 'Import BroEngine Material'
 	bl_description = 'Import a BroEngine Material Snapshot (.material file)'
 

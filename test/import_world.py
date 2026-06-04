@@ -5,7 +5,7 @@
 if __name__ == '__main__':
 	import cProfile
 
-	cProfile.run('import bpy; bpy.ops.io_scene_bro.broengine_spec_world(spec_selector="WORLD_09_MOONSHOT")',
+	cProfile.run('import bpy; bpy.ops.io_scene_bro.spec_world(spec_selector="WORLD_09_MOONSHOT")',
 	             'import_world.prof')
 
 	import pstats

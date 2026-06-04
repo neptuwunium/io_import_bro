@@ -18,7 +18,7 @@ from ...prefab.loader import load_prefab
 
 # noinspection PyTypeChecker
 class WorldRegistryOperator(_SpecOperator):
-	bl_idname = f'{__base_package__}.broengine_spec_world'
+	bl_idname = f'{__base_package__}.spec_world'
 	bl_label = 'Import HEAT World'
 	bl_text = 'World'
 	bl_header = 'Select a World'

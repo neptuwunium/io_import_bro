@@ -6,7 +6,7 @@ if __name__ == '__main__':
 	import cProfile
 
 	cProfile.run(
-		'import bpy; bpy.ops.io_scene_bro.broengine_spec_vehicle(spec_selector="VEHICLE_A01_CHRYSLER_XM1_VOLCANO")',
+		'import bpy; bpy.ops.io_scene_bro.spec_vehicle(spec_selector="VEHICLE_A01_CHRYSLER_XM1_VOLCANO")',
 		'import_vehicle.prof')
 
 	import pstats

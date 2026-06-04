@@ -16,7 +16,7 @@ from ...format.skel import SkelFile
 
 # noinspection PyTypeHints
 class SkelOperator(_ImportTemplate):
-	bl_idname = f'{__base_package__}.broengine_skel'
+	bl_idname = f'{__base_package__}.import_skel'
 	bl_label = 'Import BroEngine Skeleton'
 	bl_description = 'Import a BroEngine Skeleton (.skel file)'
 

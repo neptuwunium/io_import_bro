@@ -17,7 +17,7 @@ from ...format.anim import AnimFile
 
 # noinspection PyTypeHints
 class AnimOperator(_ImportTemplate):
-	bl_idname = f'{__base_package__}.broengine_anim'
+	bl_idname = f'{__base_package__}.import_anim'
 	bl_label = 'Import BroEngine Skeleton Animation'
 	bl_description = 'Import a BroEngine Skeleton Animation (.anim file)'
 

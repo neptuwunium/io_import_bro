@@ -5,7 +5,7 @@
 if __name__ == '__main__':
 	import cProfile
 
-	cProfile.run('import bpy; bpy.ops.io_scene_bro.broengine_spec_frontmen(spec_selector="FRONTMEN_EMBER")',
+	cProfile.run('import bpy; bpy.ops.io_scene_bro.spec_frontmen(spec_selector="FRONTMEN_EMBER")',
 	             'import_frontman.prof')
 
 	import pstats

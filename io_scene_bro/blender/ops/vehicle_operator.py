@@ -22,7 +22,7 @@ LOG = logging.getLogger(__name__)
 
 # noinspection PyTypeChecker
 class VehicleRegistryOperator(_SpecOperator):
-	bl_idname = f'{__base_package__}.broengine_spec_vehicle'
+	bl_idname = f'{__base_package__}.spec_vehicle'
 	bl_label = 'Import HEAT Vehicle'
 	bl_text = 'Vehicle'
 	bl_header = 'Select a Vehicle'

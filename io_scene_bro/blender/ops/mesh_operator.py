@@ -14,7 +14,7 @@ from ...format.mesh import MeshFile
 
 # noinspection PyTypeHints
 class MeshOperator(_ImportTemplate):
-	bl_idname = f'{__base_package__}.broengine_mesh'
+	bl_idname = f'{__base_package__}.import_mesh'
 	bl_label = 'Import BroEngine Mesh'
 	bl_description = 'Import a BroEngine Mesh (.mesh file)'
 
