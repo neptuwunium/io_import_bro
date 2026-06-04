@@ -14,7 +14,7 @@ from .import_skel import create_skeleton
 from .ops.addon_preferences import AddonPreferences
 from .ops.anim_operator import AnimOperator
 from .ops.frontmen_operator import FrontmenRegistryOperator
-from .ops.material_operator import MaterialOperator
+from .ops.material_operator import *
 from .ops.mesh_operator import MeshOperator
 from .ops.scene_operator import SceneOperator
 from .ops.skel_operator import SkelOperator
@@ -55,35 +55,40 @@ def bro_menu_import(self, _):
 	self.layout.menu(BroMenu.bl_idname, text=BroMenu.bl_label)
 
 
+CLASSES = [
+	MeshOperator,
+	SkelOperator,
+	AnimOperator,
+	SceneOperator,
+	MaterialOperator,
+	MaterialPanelOperator,
+	BindMaterialOperator,
+	BindMaterialsOperator,
+	BindAllMaterialsOperator,
+	VehicleRegistryOperator,
+	FrontmenRegistryOperator,
+	WorldRegistryOperator,
+	AddonPreferences,
+	BroMenu,
+	BroSpecMenu,
+]
+
+
 def register():
 	ops._init_preview_image()
 	bpy.app.handlers.load_post.append(ops._reset_preview_image)
-	bpy.utils.register_class(MeshOperator)
-	bpy.utils.register_class(SkelOperator)
-	bpy.utils.register_class(AnimOperator)
-	bpy.utils.register_class(SceneOperator)
-	bpy.utils.register_class(MaterialOperator)
-	bpy.utils.register_class(VehicleRegistryOperator)
-	bpy.utils.register_class(FrontmenRegistryOperator)
-	bpy.utils.register_class(WorldRegistryOperator)
-	bpy.utils.register_class(AddonPreferences)
-	bpy.utils.register_class(BroMenu)
-	bpy.utils.register_class(BroSpecMenu)
+
+	for cls in CLASSES:
+		bpy.utils.register_class(cls)
+
 	bpy.types.TOPBAR_MT_file_import.append(bro_menu_import)
 
 
 def unregister():
 	ops._deinit_preview_image()
 	bpy.app.handlers.load_post.remove(ops._reset_preview_image)
-	bpy.utils.unregister_class(MeshOperator)
-	bpy.utils.unregister_class(SkelOperator)
-	bpy.utils.unregister_class(AnimOperator)
-	bpy.utils.unregister_class(SceneOperator)
-	bpy.utils.unregister_class(MaterialOperator)
-	bpy.utils.unregister_class(VehicleRegistryOperator)
-	bpy.utils.unregister_class(FrontmenRegistryOperator)
-	bpy.utils.unregister_class(WorldRegistryOperator)
-	bpy.utils.unregister_class(AddonPreferences)
-	bpy.utils.unregister_class(BroMenu)
-	bpy.utils.unregister_class(BroSpecMenu)
+
+	for cls in CLASSES:
+		bpy.utils.unregister_class(cls)
+
 	bpy.types.TOPBAR_MT_file_import.remove(bro_menu_import)

@@ -31,6 +31,66 @@ def load_image(texture_path, root_path):
 	return image
 
 
+# noinspection PyUnresolvedReferences
+def bind_material(material):
+	if not material:
+		return
+
+	group_name = material.get(MATERIAL_DATA_KEY)
+	if not group_name:
+		return
+
+	group_node = None
+	out_node = None
+	node_tree = material.node_tree
+
+	for node in material.node_tree.nodes:
+		if node.bl_idname == 'ShaderNodeGroup' and node.name == group_name:
+			group_node = node
+		elif node.bl_idname == 'ShaderNodeOutputMaterial':
+			out_node = node
+			break
+
+		if group_node and out_node:
+			break
+
+	if group_node is None or out_node is None:
+		return
+
+	if group_node.outputs:
+		node_tree.links.new(group_node.outputs[0], out_node.inputs[0])
+
+	if not group_node.inputs:
+		return
+
+	for node in material.node_tree.nodes:
+		property_name = node.get(NODE_DATA_KEY)
+		if not property_name:
+			continue
+
+		if property_name in group_node.inputs:
+			node_tree.links.new(node.outputs[0], group_node.inputs[property_name])
+
+		if node.bl_idname == 'ShaderNodeTexImage':
+			property_name = property_name + ' Alpha'
+			if property_name in group_node.inputs:
+				node_tree.links.new(node.outputs[1], group_node.inputs[property_name])
+
+
+def bind_materials(objs=None):
+	if objs is None:
+		for material in bpy.data.materials:
+			bind_material(material)
+		return
+
+	for obj in objs:
+		if not obj.material_slots:
+			continue
+
+		for material in obj.material_slots:
+			bind_material(material.material)
+
+
 def create_material(material, name, root_path):
 	name = f'{name}::{hex(material.hash_id)[2:]}'
 
@@ -51,7 +111,7 @@ def create_material(material, name, root_path):
 		node_tree.nodes.remove(node_tree.nodes[0])
 
 	group_node = node_tree.nodes.new('ShaderNodeGroup')
-	group_node.label = group_name
+	group_node.label = group_node.name = group_name
 
 	out_node = node_tree.nodes.new('ShaderNodeOutputMaterial')
 	group_node.location = 0, 0
@@ -80,7 +140,7 @@ def create_material(material, name, root_path):
 		if name in group_node.inputs:
 			node_tree.links.new(node.outputs[0], group_node.inputs[name])
 		if alpha_node_name in group_node.inputs:
-			node_tree.links.new(node.outputs[0], group_node.inputs[alpha_node_name])
+			node_tree.links.new(node.outputs[1], group_node.inputs[alpha_node_name])
 		y -= int(node.height + SPACING + 175)
 		if node.width > width:
 			width = node.width
