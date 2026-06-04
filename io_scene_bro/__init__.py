@@ -5,10 +5,10 @@
 bl_info = {
 	'name': 'BroEngine Importer',
 	'author': 'neptuwunium',
-	'version': (1, 3, 0),
+	'version': (1, 3, 1),
 	'blender': (5, 1, 0),
 	'location': 'File > Import > BroEngine',
-	'description': 'Import BroEngine Assets',
+	'description': '3rd Party BroEngine Importer, optimized for HEAT',
 	'warning': '',
 	'tracker_url': 'https://github.com/neptuwunium/io_scene_bro',
 	'support': 'COMMUNITY',
