@@ -13,18 +13,19 @@ Currently handles:
 - mesh files (.mesh)
 - skeleton files (.skel)
 - animation files (.anim)
-- prefabs (.world, .prefab)
-- HEAT vehicles
-- HEAT agents
+- materials (.material)[^vfs][^material]
+- prefabs (.world, .prefab)[^vfs]
+- HEAT vehicles[^vfs]
+- HEAT agents[^vfs]
 
-Requires the game's VFS to be unpacked with normative paths *and* decompressed DDS files, i.e. via [wheat](https://github.com/neptuwunium/wheat)
+[^vfs]: Requires the game's VFS to be unpacked with normative paths, i.e. via [wheat](https://github.com/neptuwunium/wheat). Set the path in the settings
+[^material]: Also requires decompressed DDS files. Only imports material propreties, actual shading logic needs to be implemented.
 
 Engine File Formats are described [here](https://github.com/neptuwunium/bt/tree/develop/patterns/HEAT) and [here](https://github.com/neptuwunium/bt/blob/develop/includes/HEAT.hexpat).
 
 ## Planned
 
 - armor files (.trimesh)
-- collision files (.physmesh)
 
 ## Notice
 
