@@ -18,8 +18,8 @@ from ...format.anim import AnimFile
 # noinspection PyTypeHints
 class AnimOperator(_ImportTemplate):
 	bl_idname = f'{__base_package__}.broengine_anim'
-	bl_label = 'Import Bro Engine Skeleton Animation'
-	bl_description = 'Import a Bro Engine Skeleton Animation (.anim file)'
+	bl_label = 'Import BroEngine Skeleton Animation'
+	bl_description = 'Import a BroEngine Skeleton Animation (.anim file)'
 
 	filter_glob: StringProperty(default='*.anim', options={'HIDDEN'})
 

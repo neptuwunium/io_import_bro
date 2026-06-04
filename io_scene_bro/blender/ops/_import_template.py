@@ -7,7 +7,6 @@ import os
 import time
 
 from bpy.props import StringProperty, CollectionProperty
-# noinspection PyUnresolvedReferences
 from bpy.types import Operator, Context, Property, OperatorFileListElement
 from bpy_extras.io_utils import ImportHelper
 

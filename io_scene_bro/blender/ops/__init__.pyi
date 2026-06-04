@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: EUPL-1.2
 
-# noinspection PyUnresolvedReferences
 from bpy.types import ImagePreviewCollection
 
 _bro_image_collection: ImagePreviewCollection | None

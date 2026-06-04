@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: EUPL-1.2
 
-# noinspection PyUnresolvedReferences
 from bpy.types import Operator, Context, OperatorFileListElement
 from bpy_extras.io_utils import ImportHelper
 

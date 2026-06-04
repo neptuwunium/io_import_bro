@@ -18,8 +18,8 @@ from ...prefab.loader import load_prefab
 # noinspection PyTypeHints
 class SceneOperator(_VirtualImportTemplate):
 	bl_idname = f'{__base_package__}.broengine_scene'
-	bl_label = 'Import Bro Engine Scene'
-	bl_description = 'Import a Bro Engine Scene Prefab (.prefab, .world file)'
+	bl_label = 'Import BroEngine Scene'
+	bl_description = 'Import a BroEngine Scene Prefab (.prefab, .world file)'
 
 	filter_glob: StringProperty(default='*.prefab;*.world', options={'HIDDEN'})
 
